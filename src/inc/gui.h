@@ -43,6 +43,8 @@
 #ifndef GUI_H
 #define GUI_H
 
+extern u8 mapping; //Is the robot running and mapping or is it waiting for the start?
+
 ///////////////////////////////////////////////////
 /// \brief The GUI_ELEMENTS enum
 /// All GUI elements

@@ -10,6 +10,8 @@
 
 #include "stm32f4xx.h"
 
+extern u8 show_scan; //Display lidar scan or don’t?
+
 ////////////////////////////////////////////
 /// \brief The GUI_ELEMENT_STAT_STATES enum
 /// Definition of states of area statusbar

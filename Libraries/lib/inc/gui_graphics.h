@@ -118,7 +118,7 @@ extern void gui_handler(GUI_ELEMENT areas[]);
 extern void gui_clearAREA(GUI_ELEMENT *element);
 
 //Draw Menubutton; Standard settings (if not set to another value in gui_init
-#define MBTN_STD_LENGTH	100
+#define MBTN_STD_LENGTH	150
 #define MBTN_STD_HEIGHT	30
 extern void gui_drawMBTN(GUI_ELEMENT *element);
 

@@ -12,6 +12,7 @@
 #include "stm32_ub_font.h"
 #include "stm32_ub_touch_ADS7843.h"
 #include "printf.h"
+#include "xv11.h"
 
 //Stack of the statusbar history
 GUI_ELEMENT_STAT_STACK stat_stack;
@@ -122,6 +123,8 @@ void gui_drawAREAstatusbar(GUI_ELEMENT *element)
 /// \param element
 /// Draws SLAM Map
 
+u8 show_scan = 1; //Display the Lidar scan in the map or don’t?
+
 void gui_drawAREAmap(GUI_ELEMENT *element)
 {
 	if(element->state != GUI_EL_INVISIBLE)
@@ -142,6 +145,27 @@ void gui_drawAREAmap(GUI_ELEMENT *element)
 				 element->x + element->length,
 				 element->y + element->heigth - 40,
 				 GUI_COLOR_FONT);*/
+
+		if(show_scan)
+		{
+			for(u16 i = 0; i < 360; i++)
+			{
+				/*if(xv11.dist_polar[i] > 0)
+				{
+					int16_t lcd_x = (xv11.dist_cartesian[i].x/(xv11.dist_polar_max/((DISP_VER_RESOLUTION/2)-20))) + (DISP_HOR_RESOLUTION/2);
+					int16_t lcd_y = (xv11.dist_cartesian[i].y/(xv11.dist_polar_max/((DISP_VER_RESOLUTION/2)-20))) + (DISP_VER_RESOLUTION/2);
+					LCD_Line(DISP_HOR_RESOLUTION/2, DISP_VER_RESOLUTION/2, lcd_x, lcd_y, LCD_COLOR_CYAN);
+					//LCD_PutPixel(xv11.dist_cartesian[i].x + DISP_HOR_RESOLUTION/2, xv11.dist_cartesian[i].y + DISP_VER_RESOLUTION/2, LCD_COLOR_BRIGHTRED);
+				}*/
+				/*if(xv11.dist_polar[i] > 0)
+				{
+					int16_t lcd_x = (xv11.dist_cartesian[i].x/(xv11.dist_polar_max/((element->heigth/2)-20))) + (element->length/2);
+					int16_t lcd_y = (xv11.dist_cartesian[i].y/(xv11.dist_polar_max/((element->heigth/2)-20))) + (element->heigth/2);
+					LCD_Line(element->x + (element->length/2), element->y + (element->heigth/2), lcd_x, lcd_y, LCD_COLOR_BLUE);
+					//LCD_PutPixel(xv11.dist_cartesian[i].x + DISP_HOR_RESOLUTION/2, xv11.dist_cartesian[i].y + DISP_VER_RESOLUTION/2, LCD_COLOR_BRIGHTRED);
+				}*/
+			}
+		}
 
 		LCD_SetClipRgn(0, 0, GetMaxX(), GetMaxY());
 	}

@@ -148,12 +148,12 @@ void gui_el_event_sw_startMapping(ELEMENT_EVENT *event)
 	{
 		if(gui_element[GUI_EL_SW_STARTMAPPING].state == SW_OFF)
 		{
-			//Set flags...
+			mapping = 1;
 			gui_element[GUI_EL_SW_STARTMAPPING].state = SW_ON;
 		}
 		else
 		{
-			//Unset flags...
+			mapping = 0;
 			gui_element[GUI_EL_SW_STARTMAPPING].state = SW_OFF;
 		}
 	}
@@ -169,12 +169,12 @@ void gui_el_event_sw_showScan(ELEMENT_EVENT *event)
 	{
 		if(gui_element[GUI_EL_SW_SHOWSCAN].state == SW_OFF)
 		{
-			//Set flags...
+			show_scan = 1;
 			gui_element[GUI_EL_SW_SHOWSCAN].state = SW_ON;
 		}
 		else
 		{
-			//Unset flags...
+			show_scan = 0;
 			gui_element[GUI_EL_SW_SHOWSCAN].state = SW_OFF;
 		}
 	}
@@ -390,6 +390,8 @@ void gui_init(void)
 	STM_EVAL_PBInit(BUTTON_USER, BUTTON_MODE_GPIO); //Calibrate Touchscreen with this Button
 }
 
+u8 mapping = 0; //Is the robot running and mapping or is it waiting for the start?
+
 portTASK_FUNCTION( vGUITask, pvParameters )
 {
 	portTickType xLastWakeTime;
@@ -400,10 +402,10 @@ portTASK_FUNCTION( vGUITask, pvParameters )
 
 	xLastWakeTime = xTaskGetTickCount();
 
+	u8 timer_drawMap = 0;
+
 	for(;;)
 	{
-		//printf("Switch height: %i\n Switch length: %i\n\n", element[i].heigth, element[i].length);
-
 		gui_handler(gui_element);
 
 		if(STM_EVAL_PBGetState(BUTTON_USER))
@@ -439,8 +441,10 @@ portTASK_FUNCTION( vGUITask, pvParameters )
 			// //Map_Scale
 
 			gui_element[GUI_EL_AREA_MAP].state = GUI_EL_INTOUCHABLE;
-			gui_element[GUI_EL_SW_STARTMAPPING].state = SW_OFF;
-			gui_element[GUI_EL_SW_SHOWSCAN].state = SW_OFF;
+			if(mapping)		gui_element[GUI_EL_SW_STARTMAPPING].state = SW_ON;
+			else			gui_element[GUI_EL_SW_STARTMAPPING].state = SW_OFF;
+			if(show_scan)	gui_element[GUI_EL_SW_SHOWSCAN].state = SW_ON;
+			else			gui_element[GUI_EL_SW_SHOWSCAN].state = SW_OFF;
 
 			gui_drawSW(&gui_element[GUI_EL_SW_STARTMAPPING]);
 			gui_drawSW(&gui_element[GUI_EL_SW_SHOWSCAN]);
@@ -449,7 +453,12 @@ portTASK_FUNCTION( vGUITask, pvParameters )
 
 		case MENU_MAP_IDLE:
 
-			gui_drawAREAmap(&gui_element[GUI_EL_AREA_MAP]);
+			timer_drawMap ++;
+			if(timer_drawMap == 10)
+			{
+				gui_drawAREAmap(&gui_element[GUI_EL_AREA_MAP]);
+				timer_drawMap = 0;
+			}
 			
 			break; //Map idle (waiting for touch events)
 
@@ -510,30 +519,6 @@ portTASK_FUNCTION( vGUITask, pvParameters )
 		default: menu = MENU_INIT;
 			break;
 		}
-
-
-		//LCD_Fill(LCD_COLOR_WHITE);
-		//UB_Font_DrawPString(10,10,"TestStringABC123",&pArial_16,LCD_COLOR_BLACK,LCD_COLOR_WHITE);
-
-		/*int16_t xv11_max = 0;
-		for(u16 i = 0; i < 360; i++)
-		{
-			if(xv11.dist_polar[i] > xv11_max)
-				xv11_max = xv11.dist_polar[i];
-		}
-
-		//printf("max x: %i; max y: %i, max polar: %i\n", xv11.dist_cartesian_max.x, xv11.dist_cartesian_max.y, xv11.dist_polar_max);
-		for(u16 i = 0; i < 360; i++)
-		{
-			//printf("x: %i; y: %i\n", xv11.dist_cartesian[10].x, xv11.dist_cartesian[10].y);
-			if(xv11.dist_polar[i] > 0)
-			{
-				int16_t lcd_x = (xv11.dist_cartesian[i].x/(xv11.dist_polar_max/((DISP_VER_RESOLUTION/2)-20))) + (DISP_HOR_RESOLUTION/2);
-				int16_t lcd_y = (xv11.dist_cartesian[i].y/(xv11.dist_polar_max/((DISP_VER_RESOLUTION/2)-20))) + (DISP_VER_RESOLUTION/2);
-				LCD_Line(DISP_HOR_RESOLUTION/2, DISP_VER_RESOLUTION/2, lcd_x, lcd_y, LCD_COLOR_CYAN);
-				//LCD_PutPixel(xv11.dist_cartesian[i].x + DISP_HOR_RESOLUTION/2, xv11.dist_cartesian[i].y + DISP_VER_RESOLUTION/2, LCD_COLOR_BRIGHTRED);
-			}
-		}*/
 
 		vTaskDelayUntil( &xLastWakeTime, ( 50 / portTICK_RATE_MS ) );
 	}
