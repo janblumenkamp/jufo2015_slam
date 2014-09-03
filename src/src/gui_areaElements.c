@@ -1,3 +1,10 @@
+////////////////////////////////////////////////////////////////////////////////
+/// gui_areaElements.c - Elementar functions etc. of the GUI Element area!
+/// Areas can be used for everything, but how they look has to be defined here.
+///
+/// ADDING NEW ELEMENTS: see gui.h
+//////////////////////////////////////////////////////////////////////////////////////
+
 #include "gui_graphics.h"
 #include "gui_areaElements.h"
 #include "SSD1963_api.h"
@@ -6,7 +13,23 @@
 #include "stm32_ub_touch_ADS7843.h"
 #include "printf.h"
 
+//Stack of the statusbar history
 GUI_ELEMENT_STAT_STACK stat_stack;
+
+//Statusbar: Distance in Pixel between battery symbol and display border
+#define STAT_BATTERY_BORDER 5 //Pixel
+
+//////////////////////////////////////////////////////////////////////////////
+/// Private Prototypes (for a detailed description see each function)
+
+char *statusbar_readMessage(int8_t index);
+u16 statusbar_readMessageColor(int8_t index);
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief statusbar_addMessage
+/// \param message
+/// \param color_bg
+/// Adds a new message to the stack of the statusbar
 
 void statusbar_addMessage(char *message, u16 color_bg)
 {
@@ -17,6 +40,13 @@ void statusbar_addMessage(char *message, u16 color_bg)
 		stat_stack.index = 0;
 }
 
+/////////////////////////////////////////////////////////////////////////////
+/// \brief statusbar_readMessage
+/// \param index
+/// \return
+/// Returns any message of the statusbar history (1 is the newest message, 0
+/// the oldest)
+
 char *statusbar_readMessage(int8_t index)
 {
 	index = stat_stack.index - index;
@@ -25,6 +55,13 @@ char *statusbar_readMessage(int8_t index)
 
 	return stat_stack.message[index];
 }
+
+/////////////////////////////////////////////////////////////////////////////
+/// \brief statusbar_readMessageColor
+/// \param index
+/// \return
+/// Returns any color of any message of the statusbar history (1 is the color
+/// of the newest message, 0 of the oldest)
 
 u16 statusbar_readMessageColor(int8_t index)
 {
@@ -35,7 +72,10 @@ u16 statusbar_readMessageColor(int8_t index)
 	return stat_stack.color_bg[index];
 }
 
-#define STAT_BATTERY_BORDER 5 //Pixel
+///////////////////////////////////////////////////////////////////////////
+/// \brief gui_drawAREAstatusbar
+/// \param element
+/// Draws Statusbar
 
 void gui_drawAREAstatusbar(GUI_ELEMENT *element)
 {
@@ -77,14 +117,20 @@ void gui_drawAREAstatusbar(GUI_ELEMENT *element)
 				  batt_color, 1);
 }
 
+/////////////////////////////////////////////////////////////////
+/// \brief gui_drawAREAmap
+/// \param element
+/// Draws SLAM Map
+
 void gui_drawAREAmap(GUI_ELEMENT *element)
 {
-	gui_clearAREA(element);
-
 	if(element->state != GUI_EL_INVISIBLE)
 	{
+		gui_clearAREA(element);
+
 		LCD_SetClipRgn(element->x, element->y, element->x + element->length, element->y + element->heigth);
 
+		LCD_Rectangle(element->x, element->y, element->x + element->length, element->y + element->heigth, LCD_COLOR_BLACK, 0);
 		/*LCD_Line(element->x,
 				 element->y + element->heigth,
 				 element->x + element->length - 40,

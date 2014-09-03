@@ -1,3 +1,10 @@
+//////////////////////////////////////////////////////////////////////////////////////
+/// gui.c - Design and configuration of the gui, gui task of RTOS and managing of
+/// event queries and menu/page visualisation.
+///
+/// ADDING NEW ELEMENTS: see gui.h
+//////////////////////////////////////////////////////////////////////////////////////
+
 #include "FreeRTOS.h"
 #include "task.h"
 
@@ -18,12 +25,37 @@
 #include "gui_graphics.h"
 #include "gui_areaElements.h"
 
-GUI_ELEMENT gui_element[GUI_ELEMENTS_CNT];
+GUI_ELEMENT gui_element[GUI_ELEMENTS_CNT]; //GUI Elements structure
 
-#define STATUSBAR_HEIGHT 25
+#define STATUSBAR_HEIGHT 25 //Definition/constants of AREAS
 #define STATUSBAR_LENGTH GetMaxX()
 
-u8 menu = 0;
+u8 menu = 0; //active menu/page (menu statemachine)
+
+//////////////////////////////////////////////////////////////////////////////
+/// Private Prototypes (for a detailed description see each function)
+
+void gui_el_pages_putInvisible(void);
+
+//Events
+void gui_el_event_area_statusbar(ELEMENT_EVENT *event);
+void gui_el_event_mbtn_map(ELEMENT_EVENT *event);
+void gui_el_event_sw_startMapping(ELEMENT_EVENT *event);
+void gui_el_event_mbtn_view(ELEMENT_EVENT *event);
+void gui_el_event_mbtn_settings(ELEMENT_EVENT *event);
+void gui_el_event_sw_lidar(ELEMENT_EVENT *event);
+void gui_el_event_btn_caltouch(ELEMENT_EVENT *event);
+void gui_el_event_btn_reset(ELEMENT_EVENT *event);
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief gui_el_pages_putInvisible
+/// The elements state has to be set to GUI_EL_INVISIBLE here, if the element
+///	is a element of a page (if it is a sub-element of one of the MBTN Buttons).
+///	This is important to disable the event functions of the not-active elements
+///	(if the page is changed or the statusbar is dropped, all elements are
+///	are firstly set as inactive and then in the menu statemachine corresponding
+///	init state of the new page resetted to the active state).
+///////////////////////////////////////////////////////////////////////////////
 
 void gui_el_pages_putInvisible(void)
 {
@@ -39,6 +71,16 @@ void gui_el_pages_putInvisible(void)
 	gui_element[GUI_EL_BTN_RESET].state = GUI_EL_INVISIBLE;
 }
 
+/////////////////////////////////////////////////////////////////////////////
+//////////////////////                     //////////////////////////////////
+//////////////////////   EVENT FUNCTIONS   //////////////////////////////////
+//////////////////////                     //////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+/// \brief gui_el_event_area_statusbar
+/// \param event
 
 void gui_el_event_area_statusbar(ELEMENT_EVENT *event)
 {
@@ -64,10 +106,14 @@ void gui_el_event_area_statusbar(ELEMENT_EVENT *event)
 			gui_drawMBTN(&gui_element[GUI_EL_MBTN_VIEW]);
 			gui_drawMBTN(&gui_element[GUI_EL_MBTN_SETTINGS]);
 
-			menu --; //Draw active menu again
+			menu --; //Draw active menu again (go into active menu init state)
 		}
 	}
 }
+
+/////////////////////////////////////////////////////////////////////////////
+/// \brief gui_el_event_mbtn_map
+/// \param event
 
 void gui_el_event_mbtn_map(ELEMENT_EVENT *event)
 {
@@ -80,13 +126,17 @@ void gui_el_event_mbtn_map(ELEMENT_EVENT *event)
 		gui_el_pages_putInvisible();
 
 		gui_clearAREA(&gui_element[GUI_EL_AREA_CONTENT]);
-		gui_drawMBTN(&gui_element[GUI_EL_MBTN_MAP]);
-		gui_drawMBTN(&gui_element[GUI_EL_MBTN_VIEW]);
+		//MBTN Map is already redrawn in gui handler (because it was touched)
+		gui_drawMBTN(&gui_element[GUI_EL_MBTN_VIEW]); //Redraw menubuttons because their state may has changed
 		gui_drawMBTN(&gui_element[GUI_EL_MBTN_SETTINGS]);
 
 		menu = MENU_MAP_INIT;
 	}
 }
+
+/////////////////////////////////////////////////////////////////////////////
+/// \brief gui_el_event_sw_startMapping
+/// \param event
 
 void gui_el_event_sw_startMapping(ELEMENT_EVENT *event)
 {
@@ -102,9 +152,12 @@ void gui_el_event_sw_startMapping(ELEMENT_EVENT *event)
 			//Unset flags...
 			gui_element[GUI_EL_SW_STARTMAPPING].state = SW_OFF;
 		}
-		gui_drawSW(&gui_element[GUI_EL_SW_STARTMAPPING]);
 	}
 }
+
+/////////////////////////////////////////////////////////////////////////////
+/// \brief gui_el_event_mbtn_view
+/// \param event
 
 void gui_el_event_mbtn_view(ELEMENT_EVENT *event)
 {
@@ -117,13 +170,17 @@ void gui_el_event_mbtn_view(ELEMENT_EVENT *event)
 		gui_el_pages_putInvisible();
 
 		gui_clearAREA(&gui_element[GUI_EL_AREA_CONTENT]);
-		gui_drawMBTN(&gui_element[GUI_EL_MBTN_MAP]);
-		gui_drawMBTN(&gui_element[GUI_EL_MBTN_VIEW]);
+		gui_drawMBTN(&gui_element[GUI_EL_MBTN_MAP]); //Redraw menubuttons because their state may has changed
+		//MBTN View is already redrawn in gui handler (because it was touched)
 		gui_drawMBTN(&gui_element[GUI_EL_MBTN_SETTINGS]);
 
 		menu = MENU_VIEW_INIT;
 	}
 }
+
+/////////////////////////////////////////////////////////////////////////////
+/// \brief gui_el_event_mbtn_settings
+/// \param event
 
 void gui_el_event_mbtn_settings(ELEMENT_EVENT *event)
 {
@@ -134,13 +191,17 @@ void gui_el_event_mbtn_settings(ELEMENT_EVENT *event)
 		gui_element[GUI_EL_MBTN_VIEW].state = MBTN_NOT_ACTIVE;
 
 		gui_clearAREA(&gui_element[GUI_EL_AREA_CONTENT]);
-		gui_drawMBTN(&gui_element[GUI_EL_MBTN_MAP]);
+		gui_drawMBTN(&gui_element[GUI_EL_MBTN_MAP]); //Redraw menubuttons because their state may has changed
 		gui_drawMBTN(&gui_element[GUI_EL_MBTN_VIEW]);
-		gui_drawMBTN(&gui_element[GUI_EL_MBTN_SETTINGS]);
+		//MBTN Settings is already redrawn in gui handler (because it was touched)
 
 		menu = MENU_SETTINGS_INIT;
 	}
 }
+
+/////////////////////////////////////////////////////////////////////////////
+/// \brief gui_el_event_sw_lidar
+/// \param event
 
 void gui_el_event_sw_lidar(ELEMENT_EVENT *event)
 {
@@ -156,39 +217,51 @@ void gui_el_event_sw_lidar(ELEMENT_EVENT *event)
 			xv11_state(XV11_OFF);
 			gui_element[GUI_EL_SW_LIDAR].state = SW_OFF;
 		}
-		gui_drawSW(&gui_element[GUI_EL_SW_LIDAR]);
 	}
 }
+
+/////////////////////////////////////////////////////////////////////////////
+/// \brief gui_el_event_btn_caltouch
+/// \param event
 
 void gui_el_event_btn_caltouch(ELEMENT_EVENT *event)
 {
 	if(event->pressed)
 	{
 		gui_element[GUI_EL_BTN_CALTOUCH].state = BTN_ACTIVE;
-		gui_drawBTN(&gui_element[GUI_EL_BTN_CALTOUCH]);
 	}
 	if(event->released)
 	{
 		gui_element[GUI_EL_BTN_CALTOUCH].state = BTN_NOT_ACTIVE;
-		gui_drawBTN(&gui_element[GUI_EL_BTN_CALTOUCH]);
 		menu = MENU_CALIBRATION;
 	}
 }
+
+/////////////////////////////////////////////////////////////////////////////
+/// \brief gui_el_event_btn_reset
+/// \param event
 
 void gui_el_event_btn_reset(ELEMENT_EVENT *event)
 {
 	if(event->clicked)
 	{
 		gui_element[GUI_EL_BTN_RESET].state = BTN_ACTIVE;
-		gui_drawBTN(&gui_element[GUI_EL_BTN_RESET]);
 	}
 	if(event->doubleclick)
 	{
 		gui_element[GUI_EL_BTN_RESET].state = BTN_NOT_ACTIVE;
-		gui_drawBTN(&gui_element[GUI_EL_BTN_RESET]);
 		NVIC_SystemReset();
 	}
 }
+
+/////////////////////////////////////////////////////////////////////////////
+/// \brief gui_init
+/// Initialisation of the GUI. For every element you have to select the
+///	x/y position and the length. Corresponding to the selected ID you also
+///	have to select the other given variables like the font, the label etc.
+///	If existing, don’t forget to add the event function in GUI_ELEMENT.event
+///	(pointer to the function)
+/////////////////////////////////////////////////////////////////////////////
 
 void gui_init(void)
 {
@@ -207,7 +280,7 @@ void gui_init(void)
 		gui_element[GUI_EL_SW_LIDAR].id = EL_ID_SW;
 
 	//Load standard settings
-	init_graphics(gui_element);
+	graphics_init(gui_element);
 
 	//Individual settings
 	gui_element[GUI_EL_AREA_STATUSBAR_TOP].length = STATUSBAR_LENGTH;
@@ -235,11 +308,12 @@ void gui_init(void)
 		gui_element[GUI_EL_SW_STARTMAPPING].label = (char *)"Mapping:";
 		gui_element[GUI_EL_SW_STARTMAPPING].action = &gui_el_event_sw_startMapping;
 		gui_element[GUI_EL_SW_STARTMAPPING].x = 5;
-		gui_element[GUI_EL_SW_STARTMAPPING].y = gui_element[GUI_EL_MBTN_MAP].heigth + gui_element[GUI_EL_MBTN_MAP].heigth;
+		gui_element[GUI_EL_SW_STARTMAPPING].y = gui_element[GUI_EL_MBTN_MAP].heigth + gui_element[GUI_EL_MBTN_MAP].heigth + 2;
 		gui_element[GUI_EL_SW_STARTMAPPING].state = SW_OFF;
 
-		gui_element[GUI_EL_AREA_MAP].y = STATUSBAR_HEIGHT + gui_element[GUI_EL_MBTN_MAP].heigth + gui_element[GUI_EL_SW_STARTMAPPING].heigth + 6;
-		gui_element[GUI_EL_AREA_MAP].length = GetMaxX();
+		gui_element[GUI_EL_AREA_MAP].x = gui_element[GUI_EL_SW_STARTMAPPING].x + gui_element[GUI_EL_SW_STARTMAPPING].length + 5;
+		gui_element[GUI_EL_AREA_MAP].y = gui_element[GUI_EL_SW_STARTMAPPING].y;
+		gui_element[GUI_EL_AREA_MAP].length = GetMaxX() - gui_element[GUI_EL_AREA_MAP].x;
 		gui_element[GUI_EL_AREA_MAP].heigth = GetMaxY() - gui_element[GUI_EL_AREA_MAP].y;
 		gui_element[GUI_EL_AREA_MAP].state = GUI_EL_INTOUCHABLE;
 
