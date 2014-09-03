@@ -56,7 +56,7 @@ enum GUI_ELEMENTS {
 
 	GUI_EL_MBTN_MAP, //Menubutton Map
 		GUI_EL_SW_STARTMAPPING, //start/stop robot/mapping
-		//GUI_EL_SW_SHOWSCAN, //Show the live-scan of the lidar in the map
+		GUI_EL_SW_SHOWSCAN, //Show the live-scan of the lidar in the map
 		//GUI_EL_SLI_MAP_SCALE, //Scale of the map on the display
 		GUI_EL_AREA_MAP, //Area of the map
 

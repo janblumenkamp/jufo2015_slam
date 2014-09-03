@@ -40,7 +40,7 @@
 //Color Definitions
 #define GUI_COLOR_BACKGROUND	LCD_COLOR_WHITE
 #define GUI_COLOR_FONT			LCD_COLOR_BLACK
-#define GUI_COLOR_EL_ACTIVE		LCD_COLOR_CYAN
+#define GUI_COLOR_EL_ACTIVE		LCD_COLOR_GRAY4
 #define GUI_COLOR_EL_UNACTIVE	LCD_COLOR_GRAY2
 
 ////////////////////////////////////

@@ -30,6 +30,8 @@ GUI_ELEMENT gui_element[GUI_ELEMENTS_CNT]; //GUI Elements structure
 #define STATUSBAR_HEIGHT 25 //Definition/constants of AREAS
 #define STATUSBAR_LENGTH GetMaxX()
 
+#define PAGE_GRID_DIST 5 //Distance in pixels between GUI elements
+
 u8 menu = 0; //active menu/page (menu statemachine)
 
 //////////////////////////////////////////////////////////////////////////////
@@ -41,6 +43,7 @@ void gui_el_pages_putInvisible(void);
 void gui_el_event_area_statusbar(ELEMENT_EVENT *event);
 void gui_el_event_mbtn_map(ELEMENT_EVENT *event);
 void gui_el_event_sw_startMapping(ELEMENT_EVENT *event);
+void gui_el_event_sw_showScan(ELEMENT_EVENT *event);
 void gui_el_event_mbtn_view(ELEMENT_EVENT *event);
 void gui_el_event_mbtn_settings(ELEMENT_EVENT *event);
 void gui_el_event_sw_lidar(ELEMENT_EVENT *event);
@@ -61,6 +64,7 @@ void gui_el_pages_putInvisible(void)
 {
 	//Map
 	gui_element[GUI_EL_SW_STARTMAPPING].state = GUI_EL_INVISIBLE;
+	gui_element[GUI_EL_SW_SHOWSCAN].state = GUI_EL_INVISIBLE;
 	gui_element[GUI_EL_AREA_MAP].state = GUI_EL_INVISIBLE;
 
 	//View
@@ -155,6 +159,27 @@ void gui_el_event_sw_startMapping(ELEMENT_EVENT *event)
 	}
 }
 
+////////////////////////////////////////////////////////////////////////////
+/// \brief gui_el_event_sw_showScan
+/// \param event
+
+void gui_el_event_sw_showScan(ELEMENT_EVENT *event)
+{
+	if(event->released)
+	{
+		if(gui_element[GUI_EL_SW_SHOWSCAN].state == SW_OFF)
+		{
+			//Set flags...
+			gui_element[GUI_EL_SW_SHOWSCAN].state = SW_ON;
+		}
+		else
+		{
+			//Unset flags...
+			gui_element[GUI_EL_SW_SHOWSCAN].state = SW_OFF;
+		}
+	}
+}
+
 /////////////////////////////////////////////////////////////////////////////
 /// \brief gui_el_event_mbtn_view
 /// \param event
@@ -189,6 +214,8 @@ void gui_el_event_mbtn_settings(ELEMENT_EVENT *event)
 		gui_element[GUI_EL_MBTN_SETTINGS].state = MBTN_ACTIVE;
 		gui_element[GUI_EL_MBTN_MAP].state = MBTN_NOT_ACTIVE;
 		gui_element[GUI_EL_MBTN_VIEW].state = MBTN_NOT_ACTIVE;
+
+		gui_el_pages_putInvisible();
 
 		gui_clearAREA(&gui_element[GUI_EL_AREA_CONTENT]);
 		gui_drawMBTN(&gui_element[GUI_EL_MBTN_MAP]); //Redraw menubuttons because their state may has changed
@@ -272,6 +299,7 @@ void gui_init(void)
 	gui_element[GUI_EL_MBTN_MAP].id = EL_ID_MBTN;
 		gui_element[GUI_EL_AREA_MAP].id = EL_ID_AREA;
 		gui_element[GUI_EL_SW_STARTMAPPING].id = EL_ID_SW;
+		gui_element[GUI_EL_SW_SHOWSCAN].id = EL_ID_SW;
 		//gui_element[GUI_EL_SLI_MAP_SCALE].id = EL_ID_SLI;
 	gui_element[GUI_EL_MBTN_VIEW].id = EL_ID_MBTN;
 	gui_element[GUI_EL_MBTN_SETTINGS].id = EL_ID_MBTN;
@@ -289,61 +317,67 @@ void gui_init(void)
 	gui_element[GUI_EL_AREA_STATUSBAR_TOP].state = STAT_NOT_DROPPED;
 
 	gui_element[GUI_EL_AREA_STATUSBAR_DROPPED].length = STATUSBAR_LENGTH;
-	gui_element[GUI_EL_AREA_STATUSBAR_DROPPED].y = STATUSBAR_HEIGHT + 1;
-	gui_element[GUI_EL_AREA_STATUSBAR_DROPPED].heigth = GetMaxY() - STATUSBAR_HEIGHT - 1;
+	gui_element[GUI_EL_AREA_STATUSBAR_DROPPED].y = gui_element[GUI_EL_AREA_STATUSBAR_TOP].heigth + 1;
+	gui_element[GUI_EL_AREA_STATUSBAR_DROPPED].heigth = GetMaxY() - gui_element[GUI_EL_AREA_STATUSBAR_DROPPED].y;
 	gui_element[GUI_EL_AREA_STATUSBAR_DROPPED].state = GUI_EL_INTOUCHABLE;
-
-	gui_element[GUI_EL_AREA_CONTENT].length = GetMaxX();
-	gui_element[GUI_EL_AREA_CONTENT].y = STATUSBAR_HEIGHT + gui_element[GUI_EL_MBTN_MAP].heigth + 1;
-	gui_element[GUI_EL_AREA_CONTENT].heigth = GetMaxY() - gui_element[GUI_EL_AREA_CONTENT].y;
-	gui_element[GUI_EL_AREA_CONTENT].state = GUI_EL_INTOUCHABLE;
 
 	gui_element[GUI_EL_MBTN_MAP].x = -(MBTN_STD_HEIGHT / 2);
 	gui_element[GUI_EL_MBTN_MAP].length += (MBTN_STD_HEIGHT / 2) ;
-	gui_element[GUI_EL_MBTN_MAP].y = STATUSBAR_HEIGHT + 1;
+	gui_element[GUI_EL_MBTN_MAP].y = gui_element[GUI_EL_AREA_STATUSBAR_TOP].y + gui_element[GUI_EL_AREA_STATUSBAR_TOP].heigth + 1;
 	gui_element[GUI_EL_MBTN_MAP].label = (char *)"Map/Scan";
 	gui_element[GUI_EL_MBTN_MAP].action = &gui_el_event_mbtn_map;
 	gui_element[GUI_EL_MBTN_MAP].state = MBTN_ACTIVE;
 
 		gui_element[GUI_EL_SW_STARTMAPPING].label = (char *)"Mapping:";
 		gui_element[GUI_EL_SW_STARTMAPPING].action = &gui_el_event_sw_startMapping;
-		gui_element[GUI_EL_SW_STARTMAPPING].x = 5;
-		gui_element[GUI_EL_SW_STARTMAPPING].y = gui_element[GUI_EL_MBTN_MAP].heigth + gui_element[GUI_EL_MBTN_MAP].heigth + 2;
+		gui_element[GUI_EL_SW_STARTMAPPING].x = PAGE_GRID_DIST;
+		gui_element[GUI_EL_SW_STARTMAPPING].y = gui_element[GUI_EL_MBTN_MAP].y + gui_element[GUI_EL_MBTN_MAP].heigth + PAGE_GRID_DIST;
 		gui_element[GUI_EL_SW_STARTMAPPING].state = SW_OFF;
 
-		gui_element[GUI_EL_AREA_MAP].x = gui_element[GUI_EL_SW_STARTMAPPING].x + gui_element[GUI_EL_SW_STARTMAPPING].length + 5;
+		gui_element[GUI_EL_SW_SHOWSCAN].label = (char *)"Show scan:";
+		gui_element[GUI_EL_SW_SHOWSCAN].action = &gui_el_event_sw_showScan;
+		gui_element[GUI_EL_SW_SHOWSCAN].x = PAGE_GRID_DIST;
+		gui_element[GUI_EL_SW_SHOWSCAN].y = gui_element[GUI_EL_SW_STARTMAPPING].y + gui_element[GUI_EL_SW_STARTMAPPING].heigth + PAGE_GRID_DIST;
+		gui_element[GUI_EL_SW_SHOWSCAN].state = SW_OFF;
+
+		gui_element[GUI_EL_AREA_MAP].x = gui_element[GUI_EL_SW_STARTMAPPING].x + gui_element[GUI_EL_SW_STARTMAPPING].length + PAGE_GRID_DIST;
 		gui_element[GUI_EL_AREA_MAP].y = gui_element[GUI_EL_SW_STARTMAPPING].y;
 		gui_element[GUI_EL_AREA_MAP].length = GetMaxX() - gui_element[GUI_EL_AREA_MAP].x;
 		gui_element[GUI_EL_AREA_MAP].heigth = GetMaxY() - gui_element[GUI_EL_AREA_MAP].y;
 		gui_element[GUI_EL_AREA_MAP].state = GUI_EL_INTOUCHABLE;
 
-	gui_element[GUI_EL_MBTN_VIEW].x = MBTN_STD_LENGTH + 1;
-	gui_element[GUI_EL_MBTN_VIEW].y = STATUSBAR_HEIGHT + 1;
+	gui_element[GUI_EL_AREA_CONTENT].length = GetMaxX();
+	gui_element[GUI_EL_AREA_CONTENT].y = gui_element[GUI_EL_MBTN_MAP].y + gui_element[GUI_EL_MBTN_MAP].heigth + 1;
+	gui_element[GUI_EL_AREA_CONTENT].heigth = GetMaxY() - gui_element[GUI_EL_AREA_CONTENT].y;
+	gui_element[GUI_EL_AREA_CONTENT].state = GUI_EL_INTOUCHABLE;
+
+	gui_element[GUI_EL_MBTN_VIEW].x = gui_element[GUI_EL_MBTN_MAP].x + gui_element[GUI_EL_MBTN_MAP].length + 1;
+	gui_element[GUI_EL_MBTN_VIEW].y = gui_element[GUI_EL_MBTN_MAP].y;
 	gui_element[GUI_EL_MBTN_VIEW].label = (char *)"Info";
 	gui_element[GUI_EL_MBTN_VIEW].action = &gui_el_event_mbtn_view;
 	gui_element[GUI_EL_MBTN_VIEW].state = MBTN_NOT_ACTIVE;
 
-	gui_element[GUI_EL_MBTN_SETTINGS].x = (2 * MBTN_STD_LENGTH) + 2;
-	gui_element[GUI_EL_MBTN_SETTINGS].y = STATUSBAR_HEIGHT + 1;
+	gui_element[GUI_EL_MBTN_SETTINGS].x = gui_element[GUI_EL_MBTN_VIEW].x + gui_element[GUI_EL_MBTN_VIEW].length + 1;
+	gui_element[GUI_EL_MBTN_SETTINGS].y = gui_element[GUI_EL_MBTN_MAP].y;
 	gui_element[GUI_EL_MBTN_SETTINGS].label = (char *)"Settings";
 	gui_element[GUI_EL_MBTN_SETTINGS].action = &gui_el_event_mbtn_settings;
 	gui_element[GUI_EL_MBTN_SETTINGS].state = MBTN_NOT_ACTIVE;
 
-		gui_element[GUI_EL_BTN_CALTOUCH].x = 5;
-		gui_element[GUI_EL_BTN_CALTOUCH].y = 63;
+		gui_element[GUI_EL_BTN_CALTOUCH].x = PAGE_GRID_DIST;
+		gui_element[GUI_EL_BTN_CALTOUCH].y = gui_element[GUI_EL_MBTN_MAP].y + gui_element[GUI_EL_MBTN_MAP].heigth + PAGE_GRID_DIST;
 		gui_element[GUI_EL_BTN_CALTOUCH].label = (char *)"Calibrate touchscreen";
 		gui_element[GUI_EL_BTN_CALTOUCH].action = &gui_el_event_btn_caltouch;
 		gui_element[GUI_EL_BTN_CALTOUCH].state = GUI_EL_INVISIBLE;
 
-		gui_element[GUI_EL_BTN_RESET].x = gui_element[GUI_EL_BTN_CALTOUCH].x + gui_element[GUI_EL_BTN_CALTOUCH].length + 5;
-		gui_element[GUI_EL_BTN_RESET].y = 63;
+		gui_element[GUI_EL_BTN_RESET].x = gui_element[GUI_EL_BTN_CALTOUCH].x + gui_element[GUI_EL_BTN_CALTOUCH].length + PAGE_GRID_DIST;
+		gui_element[GUI_EL_BTN_RESET].y = gui_element[GUI_EL_BTN_CALTOUCH].y;
 		gui_element[GUI_EL_BTN_RESET].length /= 2;
 		gui_element[GUI_EL_BTN_RESET].label = (char *)"RESET";
 		gui_element[GUI_EL_BTN_RESET].action = &gui_el_event_btn_reset;
 		gui_element[GUI_EL_BTN_RESET].state = GUI_EL_INVISIBLE;
 
-		gui_element[GUI_EL_SW_LIDAR].x = 5;
-		gui_element[GUI_EL_SW_LIDAR].y = 100;
+		gui_element[GUI_EL_SW_LIDAR].x = PAGE_GRID_DIST;
+		gui_element[GUI_EL_SW_LIDAR].y = gui_element[GUI_EL_BTN_CALTOUCH].y + gui_element[GUI_EL_BTN_CALTOUCH].heigth + 5;
 		gui_element[GUI_EL_SW_LIDAR].label = (char *)"Lidar:";
 		gui_element[GUI_EL_SW_LIDAR].action = &gui_el_event_sw_lidar;
 		gui_element[GUI_EL_SW_LIDAR].state = GUI_EL_INVISIBLE;
@@ -406,8 +440,10 @@ portTASK_FUNCTION( vGUITask, pvParameters )
 
 			gui_element[GUI_EL_AREA_MAP].state = GUI_EL_INTOUCHABLE;
 			gui_element[GUI_EL_SW_STARTMAPPING].state = SW_OFF;
+			gui_element[GUI_EL_SW_SHOWSCAN].state = SW_OFF;
 
 			gui_drawSW(&gui_element[GUI_EL_SW_STARTMAPPING]);
+			gui_drawSW(&gui_element[GUI_EL_SW_SHOWSCAN]);
 
 			menu = MENU_MAP_IDLE;
 
