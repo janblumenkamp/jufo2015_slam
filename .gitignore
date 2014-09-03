@@ -11,3 +11,5 @@ LICENSE
 README.md
 /binary
 /build
+*.pdf
+*.txt

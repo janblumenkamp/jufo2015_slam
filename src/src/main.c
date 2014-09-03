@@ -77,8 +77,8 @@ int main( void )
 	xv11_init();
 
 	STM_EVAL_LEDInit(LED3);
-	/*STM_EVAL_LEDInit(LED4);
-	STM_EVAL_LEDInit(LED5);
+	STM_EVAL_LEDInit(LED4);
+	/*STM_EVAL_LEDInit(LED5);
 	STM_EVAL_LEDInit(LED6);
 
 	STM_EVAL_LEDOn(LED3);*/
@@ -93,9 +93,9 @@ int main( void )
 	// Tasks get started here...
 	xTaskCreate( vTimeTask, "TIME", configMINIMAL_STACK_SIZE,
             NULL, mainTIME_TASK_PRIORITY, &hTimeTask );
-	xTaskCreate( vGUITask, "MEMS", configMINIMAL_STACK_SIZE,
+	xTaskCreate( vGUITask, "GUI", configMINIMAL_STACK_SIZE,
 			NULL, mainGUI_TASK_PRIORITY, &hGUITask );
-	xTaskCreate( vDebugTask, "GUI", configMINIMAL_STACK_SIZE,
+	xTaskCreate( vDebugTask, "DEBUG", configMINIMAL_STACK_SIZE,
 			NULL, mainGUI_TASK_PRIORITY, &hDebugTask );
 
 	vTaskStartScheduler(); // This should never return.
@@ -113,7 +113,7 @@ portTASK_FUNCTION( vTimeTask, pvParameters ) {
     uint8_t i=0;
 
 	#if(configDEBUG_MESSAGES == 1)
-		printf("xTask ’TIME’ started.\r\n");
+		printf("xTask TIME started.\r\n");
 	#endif
 
     xLastWakeTime = xTaskGetTickCount();

@@ -30,7 +30,7 @@ portTASK_FUNCTION( vDebugTask, pvParameters ) {
 	( void ) pvParameters;
 
 	#if(configDEBUG_MESSAGES == 1)
-		printf("xTask ’DEBUG’ started.\r\n");
+		printf("xTask DEBUG started.\r\n");
 	#endif
 
 	for(;;) {

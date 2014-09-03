@@ -173,7 +173,7 @@ void gui_drawBTN(GUI_ELEMENT *element)
 				  GUI_COLOR_FONT, 1);
 
 	UB_Font_DrawPString(element->x + 5,
-						element->y + (element->heigth / 2) - 7,
+						element->y + (element->heigth / 2) - 8,
 						element->label, &pArial_16, GUI_COLOR_FONT, btn_color);
 }
 

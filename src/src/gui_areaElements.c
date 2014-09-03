@@ -77,11 +77,26 @@ void gui_drawAREAstatusbar(GUI_ELEMENT *element)
 				  batt_color, 1);
 }
 
-void gui_drawAREAscan(GUI_ELEMENT *element)
+void gui_drawAREAmap(GUI_ELEMENT *element)
 {
 	gui_clearAREA(element);
-	LCD_Line(element->x,
-			 element->y,
-			 element->x,
-			 element->y + element->heigth, GUI_COLOR_FONT);
+
+	if(element->state != GUI_EL_INVISIBLE)
+	{
+		LCD_SetClipRgn(element->x, element->y, element->x + element->length, element->y + element->heigth);
+
+		/*LCD_Line(element->x,
+				 element->y + element->heigth,
+				 element->x + element->length - 40,
+				 element->y + element->heigth,
+				 GUI_COLOR_FONT);
+
+		LCD_Line(element->x + element->length,
+				 element->y,
+				 element->x + element->length,
+				 element->y + element->heigth - 40,
+				 GUI_COLOR_FONT);*/
+
+		LCD_SetClipRgn(0, 0, GetMaxX(), GetMaxY());
+	}
 }

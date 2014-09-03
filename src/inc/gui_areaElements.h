@@ -23,6 +23,6 @@ extern void statusbar_addMessage(char *message, u16 color_bg);
 
 extern void gui_drawAREAstatusbar(GUI_ELEMENT *element);
 
-extern void gui_drawAREAscan(GUI_ELEMENT *element);
+extern void gui_drawAREAmap(GUI_ELEMENT *element);
 
 #endif // GUI_AREAELEMENTS_H
