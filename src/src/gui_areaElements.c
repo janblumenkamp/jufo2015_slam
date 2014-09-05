@@ -13,6 +13,9 @@
 #include "stm32_ub_touch_ADS7843.h"
 #include "printf.h"
 #include "xv11.h"
+#include "CoreSLAM.h"
+#include "slam.h"
+#include "main.h"
 
 //Stack of the statusbar history
 GUI_ELEMENT_STAT_STACK stat_stack;
@@ -145,6 +148,10 @@ void gui_drawAREAmap(GUI_ELEMENT *element)
 				 element->x + element->length,
 				 element->y + element->heigth - 40,
 				 GUI_COLOR_FONT);*/
+
+		//u16 mapval = 0;
+
+		LCD_DispMap(element->x + 1, element->y + 1, TS_MAP_SIZE, TS_MAP_SIZE, &map);
 
 		if(show_scan)
 		{

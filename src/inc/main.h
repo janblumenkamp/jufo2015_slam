@@ -12,6 +12,7 @@
 #include "task.h"
 
 extern xTaskHandle hTimeTask;
+extern xTaskHandle hSLAMTask;
 extern xTaskHandle hGuiTask;
 extern xTaskHandle hDebugTask;
 

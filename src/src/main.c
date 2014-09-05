@@ -42,6 +42,8 @@
 #include "xv11.h"
 #include "main.h"
 #include "gui.h"
+#include "CoreSLAM.h"
+#include "slam.h"
 
 #include "stm32_ub_touch_ADS7843.h"
 
@@ -49,15 +51,18 @@
 
 // Task priorities: Higher numbers are higher priority.
 #define mainTIME_TASK_PRIORITY      ( tskIDLE_PRIORITY + 3 )
+#define mainSLAM_TASK_PRIORITY       ( tskIDLE_PRIORITY + 2 )
 #define mainGUI_TASK_PRIORITY       ( tskIDLE_PRIORITY + 2 )
 #define mainDEBUG_TASK_PRIORITY     ( tskIDLE_PRIORITY + 1 )
 #define mainINTEGER_TASK_PRIORITY   ( tskIDLE_PRIORITY )
 
 xTaskHandle hTimeTask;
+xTaskHandle hSLAMTask;
 xTaskHandle hGUITask;
 xTaskHandle hDebugTask;
 
 portTASK_FUNCTION_PROTO( vTimeTask, pvParameters );
+portTASK_FUNCTION_PROTO( vSLAMTask, pvParameters );
 portTASK_FUNCTION_PROTO( vGUITask, pvParameters );
 portTASK_FUNCTION_PROTO( vDebugTask, pvParameters );
 
@@ -92,7 +97,9 @@ int main( void )
 
 	// Tasks get started here...
 	xTaskCreate( vTimeTask, "TIME", configMINIMAL_STACK_SIZE,
-            NULL, mainTIME_TASK_PRIORITY, &hTimeTask );
+			NULL, mainTIME_TASK_PRIORITY, &hTimeTask );
+	xTaskCreate( vSLAMTask, "SLAM", configMINIMAL_STACK_SIZE,
+			NULL, mainSLAM_TASK_PRIORITY, &hSLAMTask );
 	xTaskCreate( vGUITask, "GUI", configMINIMAL_STACK_SIZE,
 			NULL, mainGUI_TASK_PRIORITY, &hGUITask );
 	xTaskCreate( vDebugTask, "DEBUG", configMINIMAL_STACK_SIZE,

@@ -454,7 +454,7 @@ portTASK_FUNCTION( vGUITask, pvParameters )
 		case MENU_MAP_IDLE:
 
 			timer_drawMap ++;
-			if(timer_drawMap == 10)
+			if(timer_drawMap == 40)
 			{
 				gui_drawAREAmap(&gui_element[GUI_EL_AREA_MAP]);
 				timer_drawMap = 0;

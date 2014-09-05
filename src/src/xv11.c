@@ -103,6 +103,7 @@ void xv11_init(void)
 
 	//Init Motor PWM:
 	UB_PWM_TIM3_Init();
+	UB_PWM_TIM3_SetPWM(PWM_T3_PB5, 0);
 
 	xv11_state(XV11_OFF);
 }
