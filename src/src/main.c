@@ -97,7 +97,7 @@ int main( void )
 	// Tasks get started here...
 	xTaskCreate( vTimeTask, "TIME", configMINIMAL_STACK_SIZE,
 			NULL, mainTIME_TASK_PRIORITY, &hTimeTask );
-	xTaskCreate( vSLAMTask, "SLAM", configMINIMAL_STACK_SIZE,
+	xTaskCreate( vSLAMTask, "SLAM", configMINIMAL_STACK_SIZE*3,
 			NULL, mainSLAM_TASK_PRIORITY, &hSLAMTask );
 	xTaskCreate( vGUITask, "GUI", configMINIMAL_STACK_SIZE,
 			NULL, mainGUI_TASK_PRIORITY, &hGUITask );

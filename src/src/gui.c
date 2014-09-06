@@ -256,6 +256,7 @@ void gui_el_event_btn_caltouch(ELEMENT_EVENT *event)
 	if(event->pressed)
 	{
 		gui_element[GUI_EL_BTN_CALTOUCH].state = BTN_ACTIVE;
+		gui_drawBTN(&gui_element[GUI_EL_BTN_CALTOUCH]);
 	}
 	if(event->released)
 	{

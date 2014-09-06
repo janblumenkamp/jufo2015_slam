@@ -24,6 +24,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_it.h"
 #include "stdint.h"
+#include "printf.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -42,6 +43,7 @@
   */
 void NMI_Handler(void)
 {
+	printf("FATAL ERROR: NMI EXCEPTION!\n");
 }
 
 /**
@@ -80,6 +82,7 @@ void prvGetRegistersFromStack(uint32_t *pulFaultStackAddress) {
 /* The fault handler implementation calls a function called
    prvGetRegistersFromStack(). */
 static void HardFault_Handler(void) {
+	printf("FATAL ERROR: HARD FAULT HANDLER EXCEPTION!\n");
   __asm volatile (
      " tst lr, #4                                                \n"
      " ite eq                                                    \n"
@@ -100,6 +103,7 @@ static void HardFault_Handler(void) {
 void MemManage_Handler(void)
 {
   /* Go to infinite loop when Memory Manage exception occurs */
+  printf("FATAL ERROR: MEMORY MANAGE EXCEPTION! GO INTO INFINITE LOOP!\n");
   while (1)
   {
   }
@@ -113,6 +117,7 @@ void MemManage_Handler(void)
 void BusFault_Handler(void)
 {
   /* Go to infinite loop when Bus Fault exception occurs */
+  printf("FATAL ERROR: BUS FAULT EXCEPTION! GO INTO INFINITE LOOP!\n");
   for (;;);
 }
 
@@ -123,6 +128,7 @@ void BusFault_Handler(void)
   */
 void UsageFault_Handler(void)
 {
+	printf("FATAL ERROR: USAGE FAULT EXCEPTION! GO INTO INFINITE LOOP!\n");
   /* Go to infinite loop when Usage Fault exception occurs */
   for (;;);
 }
@@ -134,5 +140,6 @@ void UsageFault_Handler(void)
   */
 void DebugMon_Handler(void)
 {
+	printf("FATAL ERROR: DEBUG MONITOR EXCEPTION!\n");
 }
 /******************* (C) COPYRIGHT 2011 STMicroelectronics *****END OF FILE****/

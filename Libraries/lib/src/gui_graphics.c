@@ -107,7 +107,7 @@ void gui_handler(GUI_ELEMENT element[])
 				{
 					element[i].event.pressed = 1;
 					element[i].action(&element[i].event);
-					gui_redrawElement(&element[i]);
+					//Don’t redraw button if pressed. If pressed, the handler function has to redraw if really nessesary (otherwise the buttons are always refreshed, also, if there is no .pressed listener in the event function)
 					element[i].event.pressed = 0;
 				}
 				if(UB_Touch_OnDoubleClick())

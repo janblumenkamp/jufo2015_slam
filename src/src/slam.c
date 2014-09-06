@@ -36,34 +36,17 @@ portTASK_FUNCTION( vSLAMTask, pvParameters ) {
 
 	xLastWakeTime = xTaskGetTickCount();
 
-	slam_init(&slam, 0, 0, 0, 0, xv11.dist_polar, NULL, NULL);
+	slam_init(&slam, 1000, 1000, 0, 0, (XV11_t *) &xv11, NULL, NULL);
 
-	/*ts_map_init(&map);
-	ts_state_init(&state, &map, &robot_parameters, &laser_parameters, &robot_position, 1.0, 1.0, TS_HOLE_WIDTH, TS_DIRECTION_FORWARD);
-
-	laserscan.nb_points = 360;
+	//slam_laserRayToMap(&slam, 10, 10, 105, 105, 100, 100, IS_OBSTACLE, 255);
 
 	while(xv11_state(XV11_GETSTATE) != XV11_ON);
 
-	printf("Lidar spinning...\n");
+	printf("Lidar spinning... Update map!\n");
 
-	for(u16 i = 0; i < 360; i++)
-		sensor_data.d[i] = xv11.dist_polar[i];
+	slam_map_update(&slam, 100, 50);
 
-	printf("Buid scan...\n");
-	ts_build_scan(&sensor_data, &laserscan, &state, 360);
-
-	printf("done!\nSend laser processed data...\n");
-	printf("nbpoints: %i\n", laserscan.nb_points);
-
-	for(u8 i = 0; i < laserscan.nb_points; i++)
-		printf("%i\n", laserscan.value[i]);
-
-	printf("done!\nUpdate map...\n");
-
-	ts_map_update(&laserscan, &map, &robot_position, TS_MAP_QUALITY, TS_HOLE_WIDTH);
-
-	printf("done!");*/
+	printf("done!");
 
 	for(;;)
 	{
@@ -90,7 +73,7 @@ void slam_LCD_DispMap(int16_t x0, int16_t y0, slam_t *slam)
 	for (u16 y = 0; y < (MAP_SIZE_Y_MM / MAP_RESOLUTION_MM); y++)
 		for (u16 x = 0; x < (MAP_SIZE_X_MM / MAP_RESOLUTION_MM); x++)
 		{
-			mapval = IS_OBSTACLE + slam->map.px[x][y][slam->robot_pos.coord.z];
+			mapval = slam->map.px[x][y][slam->robot_pos.coord.z];
 			LCD_WriteData(0xffff - RGB565CONVERT(mapval, mapval, mapval));
 		}
 
