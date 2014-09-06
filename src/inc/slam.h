@@ -1,10 +1,10 @@
 #ifndef SLAM_H
 #define SLAM_H
 
-#include "CoreSLAM.h"
+#include "slamdefs.h"
 
-extern ts_map_t map;
+extern slam_t slam;
 
-extern void LCD_DispMap(int16_t x0, int16_t y0, int16_t width, int16_t height, ts_map_t *map);
+extern void slam_LCD_DispMap(int16_t x0, int16_t y0, slam_t *slam);
 
 #endif // SLAM_H

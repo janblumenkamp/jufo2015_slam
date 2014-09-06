@@ -42,7 +42,6 @@
 #include "xv11.h"
 #include "main.h"
 #include "gui.h"
-#include "CoreSLAM.h"
 #include "slam.h"
 
 #include "stm32_ub_touch_ADS7843.h"

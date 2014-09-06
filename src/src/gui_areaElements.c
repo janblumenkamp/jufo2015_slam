@@ -13,7 +13,7 @@
 #include "stm32_ub_touch_ADS7843.h"
 #include "printf.h"
 #include "xv11.h"
-#include "CoreSLAM.h"
+#include "slamdefs.h"
 #include "slam.h"
 #include "main.h"
 
@@ -132,11 +132,11 @@ void gui_drawAREAmap(GUI_ELEMENT *element)
 {
 	if(element->state != GUI_EL_INVISIBLE)
 	{
-		gui_clearAREA(element);
-
 		LCD_SetClipRgn(element->x, element->y, element->x + element->length, element->y + element->heigth);
-
 		LCD_Rectangle(element->x, element->y, element->x + element->length, element->y + element->heigth, LCD_COLOR_BLACK, 0);
+
+		slam_LCD_DispMap(element->x + 1, element->y + 1, &slam); //Not nessesary to clear area (it is overwritten)
+
 		/*LCD_Line(element->x,
 				 element->y + element->heigth,
 				 element->x + element->length - 40,
@@ -151,7 +151,6 @@ void gui_drawAREAmap(GUI_ELEMENT *element)
 
 		//u16 mapval = 0;
 
-		LCD_DispMap(element->x + 1, element->y + 1, TS_MAP_SIZE, TS_MAP_SIZE, &map);
 
 		if(show_scan)
 		{

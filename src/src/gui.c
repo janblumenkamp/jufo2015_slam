@@ -449,12 +449,14 @@ portTASK_FUNCTION( vGUITask, pvParameters )
 			gui_drawSW(&gui_element[GUI_EL_SW_STARTMAPPING]);
 			gui_drawSW(&gui_element[GUI_EL_SW_SHOWSCAN]);
 
+			timer_drawMap = 10 - 1;
+
 			menu = MENU_MAP_IDLE;
 
 		case MENU_MAP_IDLE:
 
 			timer_drawMap ++;
-			if(timer_drawMap == 40)
+			if(timer_drawMap == 10)
 			{
 				gui_drawAREAmap(&gui_element[GUI_EL_AREA_MAP]);
 				timer_drawMap = 0;
