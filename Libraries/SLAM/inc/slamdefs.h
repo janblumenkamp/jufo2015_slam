@@ -67,15 +67,17 @@ typedef struct {
 } slam_t;
 
 //Initialization of all relevant SLAM information
-void slam_init(slam_t *slam,
-			   int16_t rob_x_start, int16_t rob_y_start, u8 rob_z_start, int16_t rob_psi_start,
-			   XV11_t *xv11, int32_t *odo_l, int32_t *odo_r);
+extern void slam_init(slam_t *slam,
+					  int16_t rob_x_start, int16_t rob_y_start, u8 rob_z_start, int16_t rob_psi_start,
+					  XV11_t *xv11, int32_t *odo_l, int32_t *odo_r);
 
 //Bases on ts_map_laser_ray
-void slam_laserRayToMap(slam_t *slam,
-						int x1, int y1, int x2, int y2, int xp, int yp,
-						int value, int alpha);
+extern void slam_laserRayToMap(slam_t *slam,
+							   int x1, int y1, int x2, int y2, int xp, int yp,
+							   int value, int alpha);
 
-void slam_map_update(slam_t *slam, int quality, int hole_width);
+extern void slam_map_update(slam_t *slam, int quality, int hole_width);
+
+extern int slam_distanceScanToMap(slam_t *slam, slam_position_t *position);
 
 #endif

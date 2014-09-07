@@ -226,7 +226,48 @@ void slam_map_update(slam_t *slam, int quality, int hole_width)
 			x2 = (int)floorf(slam->robot_pos.coord.x / MAP_RESOLUTION_MM + x2p);
 			y2 = (int)floorf(slam->robot_pos.coord.y / MAP_RESOLUTION_MM + y2p);
 
-			slam_laserRayToMap(slam, y1, x1, y2, x2, yp, xp, IS_OBSTACLE, quality); //Cahnge x/y - otherwise map is mirrored
+			slam_laserRayToMap(slam, y1, x1, y2, x2, yp, xp, IS_OBSTACLE, quality); //Change x/y - otherwise map is mirrored
 		}
 	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////
+/// \brief slam_distanceScanToMap
+///		comperares the ambiguity  of the laserscan to the given position in the map
+/// \param slam
+///		slam container structure containing the newest lidar scan
+/// \param position
+///		position in the map that shall be compared by the lidar scan
+/// \return
+///		number that is proportional to the ambiguity (around 230000 fully matching)
+
+int slam_distanceScanToMap(slam_t *slam, slam_position_t *position)
+{
+	float c, s, lidar_x, lidar_y;
+	int i, x, y, nb_points = 0, sum = 0;
+
+	c = cosf(position->psi * M_PI / 180);
+	s = sinf(position->psi * M_PI / 180);
+	// Translate and rotate scan to robot position
+	// and compute the distance
+	for (i = 0; i < 360; i++)
+	{
+		if(slam->sensordata.xv11->dist_polar[i] != XV11_VAR_NODATA)
+		{
+			lidar_x = (slam->sensordata.xv11->dist_polar[i] * sinf(i * (M_PI / 180)));
+			lidar_y = (slam->sensordata.xv11->dist_polar[i] * cosf(i * (M_PI / 180)));
+
+			x = (int)floorf((position->coord.x + c * lidar_x - s * lidar_y) / MAP_RESOLUTION_MM);
+			y = (int)floorf((position->coord.y + s * lidar_x + c * lidar_y) / MAP_RESOLUTION_MM);
+			// Check boundaries
+			if ((x >= 0) && (x < (MAP_SIZE_X_MM/MAP_RESOLUTION_MM)) && (y >= 0) && (y < (MAP_SIZE_Y_MM/MAP_RESOLUTION_MM)))
+			{
+				sum += slam->map.px[x][y][position->coord.z];
+				nb_points++;
+			}
+		}
+	}
+	if (nb_points) sum = sum * 1024 / nb_points;
+	else sum = 2000000000;
+	return (int)sum;
 }

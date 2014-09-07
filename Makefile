@@ -107,6 +107,7 @@ SRC+=gui.c
 SRC+=utils.c
 SRC+=gui_areaElements.c
 SRC+=slam.c
+SRC+=comm.c
 
 #SSD1963
 SRC+=SSD1963.c

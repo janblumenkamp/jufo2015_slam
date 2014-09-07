@@ -45,7 +45,9 @@ portTASK_FUNCTION( vSLAMTask, pvParameters ) {
 
 	for(;;)
 	{
-		slam_map_update(&slam, 50, 50);
+		slam_map_update(&slam, 50, 60);
+		//int var = slam_distanceScanToMap(&slam);
+		//printf("dist: %i\n", var);
 
 		//ts_iterative_map_building(&sensor_data, &state);
 		vTaskDelayUntil( &xLastWakeTime, ( 200 / portTICK_RATE_MS ) );
