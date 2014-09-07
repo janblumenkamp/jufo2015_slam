@@ -24,6 +24,7 @@
 #include "gui.h"
 #include "gui_graphics.h"
 #include "gui_areaElements.h"
+#include "slam.h"
 
 GUI_ELEMENT gui_element[GUI_ELEMENTS_CNT]; //GUI Elements structure
 
@@ -178,6 +179,31 @@ void gui_el_event_sw_showScan(ELEMENT_EVENT *event)
 			gui_element[GUI_EL_SW_SHOWSCAN].state = SW_OFF;
 		}
 	}
+}
+
+////////////////////////////////////////////////////////////////////////////
+/// \brief gui_el_event_area_map
+/// \param event
+
+void gui_el_event_area_map(ELEMENT_EVENT *event)
+{
+	if(event->doubleclick)
+	{
+		slam.robot_pos.psi += 15;
+		if(slam.robot_pos.psi > 359)
+			slam.robot_pos.psi = 0;
+	}
+	else if(event->clicked)
+	{
+		slam.robot_pos.coord.x = (Touch_Data.pos.xp - gui_element[GUI_EL_AREA_MAP].x) * MAP_RESOLUTION_MM;
+		slam.robot_pos.coord.y = (Touch_Data.pos.yp - gui_element[GUI_EL_AREA_MAP].y) * MAP_RESOLUTION_MM;
+
+		for(u8 z = 0; z < MAP_SIZE_Z_LAYERS; z ++)
+			for(u16 y = 0; y < (MAP_SIZE_Y_MM/MAP_RESOLUTION_MM); y++)
+				for(u16 x = 0; x < (MAP_SIZE_X_MM / MAP_RESOLUTION_MM); x ++)
+					slam.map.px[x][y][z] = 127;
+	}
+
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -345,7 +371,8 @@ void gui_init(void)
 		gui_element[GUI_EL_AREA_MAP].y = gui_element[GUI_EL_SW_STARTMAPPING].y;
 		gui_element[GUI_EL_AREA_MAP].length = GetMaxX() - gui_element[GUI_EL_AREA_MAP].x;
 		gui_element[GUI_EL_AREA_MAP].heigth = GetMaxY() - gui_element[GUI_EL_AREA_MAP].y;
-		gui_element[GUI_EL_AREA_MAP].state = GUI_EL_INTOUCHABLE;
+		gui_element[GUI_EL_AREA_MAP].action = &gui_el_event_area_map;
+		gui_element[GUI_EL_AREA_MAP].state = MAP_ACTIVE;
 
 	gui_element[GUI_EL_AREA_CONTENT].length = GetMaxX();
 	gui_element[GUI_EL_AREA_CONTENT].y = gui_element[GUI_EL_MBTN_MAP].y + gui_element[GUI_EL_MBTN_MAP].heigth + 1;
@@ -447,22 +474,24 @@ portTASK_FUNCTION( vGUITask, pvParameters )
 			if(show_scan)	gui_element[GUI_EL_SW_SHOWSCAN].state = SW_ON;
 			else			gui_element[GUI_EL_SW_SHOWSCAN].state = SW_OFF;
 
+			gui_element[GUI_EL_AREA_MAP].state = MAP_ACTIVE;
+
 			gui_drawSW(&gui_element[GUI_EL_SW_STARTMAPPING]);
 			gui_drawSW(&gui_element[GUI_EL_SW_SHOWSCAN]);
 
-			timer_drawMap = 10 - 1;
+			timer_drawMap = 0;
 
 			menu = MENU_MAP_IDLE;
 
 		case MENU_MAP_IDLE:
 
-			timer_drawMap ++;
-			if(timer_drawMap == 10)
+			if(timer_drawMap == 0)
 			{
 				gui_drawAREAmap(&gui_element[GUI_EL_AREA_MAP]);
-				timer_drawMap = 0;
+				timer_drawMap = MAP_REFRESHTIME;
 			}
-			
+			timer_drawMap --;
+
 			break; //Map idle (waiting for touch events)
 
 		case MENU_VIEW_INIT:

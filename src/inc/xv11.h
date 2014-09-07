@@ -1,7 +1,6 @@
 #ifndef XV11_H
 #define XV11_H
 
-#define MAX_STRLEN 12 // this is the maximum string length of our string in characters
 
 //Source: http://eliaselectronics.com/stm32f4-tutorials/stm32f4-usart-tutorial/
 
@@ -15,6 +14,8 @@
 
 #define XV11_PACKAGE_LENGTH 22 //In bytes
 
+#define XV11_VAR_NODATA			0 //Value of distance of the measuement is not usable
+
 enum XV11_STATE {
 	XV11_OFF,
 	XV11_STARTING, XV11_ON,
@@ -22,17 +23,9 @@ enum XV11_STATE {
 };
 
 typedef struct {
-	int16_t x;
-	int16_t y;
-} XV11_CARTESIAN;
-
-typedef struct {
 	u8 state;
 	float speed;
 	int16_t dist_polar[360];
-	int16_t dist_polar_max;
-	XV11_CARTESIAN dist_cartesian[360];
-	XV11_CARTESIAN dist_cartesian_max;
 } XV11_t;
 
 extern volatile XV11_t xv11;

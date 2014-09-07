@@ -72,6 +72,8 @@ enum GUI_ELEMENTS {
 	GUI_ELEMENTS_CNT
 };
 
+#define MAP_REFRESHTIME 4 //*50ms. Refreshrate of Map visualization.
+
 ///////////////////////////////////////////////////
 /// \brief The GUI_MENU enum
 /// All menu statemachine

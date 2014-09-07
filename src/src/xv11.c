@@ -132,7 +132,6 @@ void USART1_IRQHandler(void)
 		static u_int8_t sm = INIT_SEARCHSTART;
 		static u_int16_t xv11_dist_index = 0;
 		static float xv11_speedreg_i = XV11_SPEED_IREG_INIT; //I-Regulator (speed)
-		static int16_t dist_polar_max = 0, dist_cartesianX_max = 0, dist_cartesianY_max = 0;
 		static u_int8_t xv11_state_on_cnt = 0; //Before the state switches to "XV11_ON", the rpm has to be stable a few iterations
 		u_int32_t checksum = 0;
 		u_int8_t data = (u_int8_t)USART1->DR; // the character from the USART1 data register is saved in data
@@ -196,28 +195,7 @@ void USART1_IRQHandler(void)
 					{
 						xv11.dist_polar[xv11_dist_index + i] = xv11_package[D0_B0 + (i * 4)] + ((xv11_package[D0_B1 + (i * 4)] & 0x3F) << 8);
 						if((xv11_package[D0_B1 + (i * 4)] & 0x80) || (xv11_package[D0_B1 + (i * 4)] & 0x40)) //invalid data flag
-							xv11.dist_polar[xv11_dist_index + i] = 0;
-
-						xv11.dist_cartesian[xv11_dist_index + i].x = (int16_t)(xv11.dist_polar[xv11_dist_index + i] * sinf((xv11_dist_index + i) * (3.14159/180)));
-						xv11.dist_cartesian[xv11_dist_index + i].y = (int16_t)(xv11.dist_polar[xv11_dist_index + i] * cosf((xv11_dist_index + i) * (3.14159/180)));
-
-						if(xv11.dist_polar[xv11_dist_index + i] > dist_polar_max)
-							dist_polar_max = xv11.dist_polar[xv11_dist_index + i];
-						if(xv11.dist_cartesian[xv11_dist_index + i].x > dist_cartesianX_max)
-							dist_cartesianX_max = xv11.dist_cartesian[xv11_dist_index + i].x;
-						if(xv11.dist_cartesian[xv11_dist_index + i].y > dist_cartesianY_max)
-							dist_cartesianY_max = xv11.dist_cartesian[xv11_dist_index + i].y;
-					}
-
-					if((xv11_dist_index + 3) == 359)
-					{
-						xv11.dist_polar_max = dist_polar_max;
-						xv11.dist_cartesian_max.x = dist_cartesianX_max;
-						xv11.dist_cartesian_max.y = dist_cartesianY_max;
-
-						dist_polar_max = 0;
-						dist_cartesianX_max = 0;
-						dist_cartesianY_max = 0;
+							xv11.dist_polar[xv11_dist_index + i] = XV11_VAR_NODATA;
 					}
 
 					xv11_speedreg_i += ((XV11_SPEED_RPM_TO - xv11.speed) / XV11_SPEED_DIV_I);
@@ -246,10 +224,7 @@ void USART1_IRQHandler(void)
 				{
 					for(u8 i = 4; i < 8; i++)
 					{
-						xv11.dist_polar[xv11_dist_index + i] = 0; //clear the distance information of the package with the false checksum
-
-						xv11.dist_cartesian[xv11_dist_index + i].x = 0;
-						xv11.dist_cartesian[xv11_dist_index + i].y = 0;
+						xv11.dist_polar[xv11_dist_index + i] = XV11_VAR_NODATA; //clear the distance information of the package with the false checksum
 					}
 					xv11_dist_index += 4; //In case the next package is also false and this var can’t set new, go to the next package index
 					if(xv11_dist_index > 359)

@@ -36,23 +36,19 @@ portTASK_FUNCTION( vSLAMTask, pvParameters ) {
 
 	xLastWakeTime = xTaskGetTickCount();
 
-	slam_init(&slam, 1000, 1000, 0, 0, (XV11_t *) &xv11, NULL, NULL);
-
-	//slam_laserRayToMap(&slam, 10, 10, 105, 105, 100, 100, IS_OBSTACLE, 255);
+	slam_init(&slam, 1000, 100, 0, 0, (XV11_t *) &xv11, NULL, NULL);
+	//slam_laserRayToMap(&slam, 85, 33, 220, 33, 210, 33, 255, 100);
 
 	while(xv11_state(XV11_GETSTATE) != XV11_ON);
 
-	printf("Lidar spinning... Update map!\n");
-
-	slam_map_update(&slam, 100, 50);
-
-	printf("done!");
+	//slam_map_update(&slam, 100, 50);
 
 	for(;;)
 	{
-		//ts_iterative_map_building(&sensor_data, &state);
+		slam_map_update(&slam, 50, 50);
 
-		vTaskDelayUntil( &xLastWakeTime, ( 1000 / portTICK_RATE_MS ) );
+		//ts_iterative_map_building(&sensor_data, &state);
+		vTaskDelayUntil( &xLastWakeTime, ( 200 / portTICK_RATE_MS ) );
 	}
 }
 

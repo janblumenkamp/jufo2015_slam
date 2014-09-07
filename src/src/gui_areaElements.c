@@ -16,6 +16,7 @@
 #include "slamdefs.h"
 #include "slam.h"
 #include "main.h"
+#include "math.h"
 
 //Stack of the statusbar history
 GUI_ELEMENT_STAT_STACK stat_stack;
@@ -135,11 +136,19 @@ void gui_drawAREAmap(GUI_ELEMENT *element)
 		LCD_SetClipRgn(element->x, element->y, element->x + element->length, element->y + element->heigth);
 		LCD_Rectangle(element->x, element->y, element->x + element->length, element->y + element->heigth, LCD_COLOR_BLACK, 0);
 
-		/*slam_laserRayToMap(&slam,
-							   100, 10,
-							   80, 30);*/
 		slam_LCD_DispMap(element->x + 1, element->y + 1, &slam); //Not nessesary to clear area (it is overwritten)
 
+
+		LCD_Line(element->x + (slam.robot_pos.coord.x / MAP_RESOLUTION_MM),
+				 element->y + (slam.robot_pos.coord.y / MAP_RESOLUTION_MM),
+				 element->x + (slam.robot_pos.coord.x / MAP_RESOLUTION_MM) + 10 * sinf((290 + slam.robot_pos.psi) * (M_PI / 180)),
+				 element->y + (slam.robot_pos.coord.y / MAP_RESOLUTION_MM) + 10 * cosf((290 + slam.robot_pos.psi) * (M_PI / 180)),
+				 LCD_COLOR_RED);
+		LCD_Line(element->x + (slam.robot_pos.coord.x / MAP_RESOLUTION_MM),
+				 element->y + (slam.robot_pos.coord.y / MAP_RESOLUTION_MM),
+				 element->x + (slam.robot_pos.coord.x / MAP_RESOLUTION_MM) + 10 * sinf((250 + slam.robot_pos.psi) * (M_PI / 180)),
+				 element->y + (slam.robot_pos.coord.y / MAP_RESOLUTION_MM) + 10 * cosf((250 + slam.robot_pos.psi) * (M_PI / 180)),
+				 LCD_COLOR_RED);
 		/*LCD_Line(element->x,
 				 element->y + element->heigth,
 				 element->x + element->length - 40,

@@ -101,7 +101,7 @@ int main( void )
 			NULL, mainSLAM_TASK_PRIORITY, &hSLAMTask );
 	xTaskCreate( vGUITask, "GUI", configMINIMAL_STACK_SIZE,
 			NULL, mainGUI_TASK_PRIORITY, &hGUITask );
-	xTaskCreate( vDebugTask, "DEBUG", configMINIMAL_STACK_SIZE,
+	xTaskCreate( vDebugTask, "DEBUG", configMINIMAL_STACK_SIZE*2,
 			NULL, mainGUI_TASK_PRIORITY, &hDebugTask );
 
 	vTaskStartScheduler(); // This should never return.

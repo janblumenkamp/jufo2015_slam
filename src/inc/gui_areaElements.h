@@ -21,9 +21,9 @@ enum GUI_ELEMENT_STAT_STATES {
 };
 
 /// Definition of the states of the Area of the map
-/*enum GUI_ELEMENT_MAP_STATES {
-
-};*/
+enum GUI_ELEMENT_MAP_STATES {
+	MAP_ACTIVE = 2
+};
 
 //Stacksize of the Statusbar (amount of Status messages in the statusbar history)
 #define STAT_STACK_SIZE 25
