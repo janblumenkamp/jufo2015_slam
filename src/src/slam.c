@@ -45,44 +45,30 @@ portTASK_FUNCTION( vSLAMTask, pvParameters ) {
 
 	//slam_map_update(&slam, 100, 50);
 
+	int led_hue = 0;
 	for(;;)
 	{
-		/*sendMessage.batch_write = 1;
-		sendMessage.batch = 9;
-		sendMessage.reg = 0;
-		uint8_t mesg[10];
+		led_hue += 1;
+		if(led_hue > 255)
+			led_hue = 0;
+
+		sendMessage.batch_write = 1;
+		sendMessage.batch = 4;
+		sendMessage.reg = COMM_LED_MODE;
+		uint8_t mesg[4];
+		mesg[0] = 1;
+		mesg[1] = led_hue;
+		mesg[2] = 255;
+		mesg[3] = 20;
 		sendMessage.data = mesg;
-		for(uint8_t i = 0; i < 9; i++)
-		{
-			sendMessage.data[i] = i;
-		}
-		comm_sendPackage(&sendMessage);*/
-		USART_SendData(USART3, 0xAB);
-		USART_SendData(USART3, 5);
-
-		/*printf("Sent message!\n Wait for response...\n");
-
-		while(!comm_receivedMsg());
-		printf("Response Received!\n");
-		if(receivedMessage.checksum == comm_calcChecksum(&receivedMessage))
-		{
-			printf("successfully sent and received packages!\n");
-			for(uint8_t i = 0; i < receivedMessage.batch; i++)
-				printf("data%i: %i", i, receivedMessage.data[i]);
-		}
-		else
-		{
-			printf("Error: wrong checksum!\n");
-		}*/
-		//if(receivedMessage)
-
+		comm_bidirectionalPackage(&sendMessage, 3);
 
 		//slam_map_update(&slam, 50, 60);
 		//int var = slam_distanceScanToMap(&slam);
 		//printf("dist: %i\n", var);
 
 		//ts_iterative_map_building(&sensor_data, &state);
-		vTaskDelayUntil( &xLastWakeTime, ( 1000 / portTICK_RATE_MS ) );
+		vTaskDelayUntil( &xLastWakeTime, ( 10 / portTICK_RATE_MS ) );
 	}
 }
 

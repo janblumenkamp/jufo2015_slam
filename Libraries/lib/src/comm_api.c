@@ -125,7 +125,7 @@ void comm_init(void)
 	/* Now the USART_InitStruct is used to define the
 	 * properties of USART3
 	 */
-	USART_InitStruct.USART_BaudRate = 115200;				// the baudrate is set to the value we passed into this init function
+	USART_InitStruct.USART_BaudRate = 1000000;				// 125kB/s. The baudrate is set to the value we passed into this init function
 	USART_InitStruct.USART_WordLength = USART_WordLength_8b;// we want the data frame size to be 8 bits (standard)
 	USART_InitStruct.USART_StopBits = USART_StopBits_1;		// we want 1 stop bit (standard)
 	USART_InitStruct.USART_Parity = USART_Parity_No;		// we don't want a parity bit (standard)
@@ -253,6 +253,81 @@ void comm_sendPackage(comm_msg_t *msg)
 	msg->checksum = comm_calcChecksum(msg);
 	comm_sendByte(msg->checksum >> 8);
 	comm_sendByte(msg->checksum & 0xff);
+}
+
+/////////////////////////////////////////////////////////////////////////////
+/// \brief comm_bidirectionalPackage
+///		Sends the given message and also listens for the answer of the slave.
+///		If transmission was unsuccessfully, try to send again maximal max_tries
+///		times.
+/// \param msg
+///		Message to send
+/// \param max_tries
+/// \return
+///		true or false (success/no success)
+
+uint8_t comm_bidirectionalPackage(comm_msg_t *msg, uint8_t max_tries)
+{
+	uint8_t tries = 0;
+	uint8_t sm_comm_bidi = 0;
+	uint16_t responseDuration = 0;
+
+	while((tries < max_tries) && (sm_comm_bidi != 3))
+	{
+		switch (sm_comm_bidi) {
+		case 0:
+			comm_listen();
+			comm_sendPackage(msg);
+			responseDuration = 0;
+			sm_comm_bidi = 1;
+		case 1:
+			responseDuration ++;
+			if(responseDuration >= 65000)
+			{
+				sm_comm_bidi = 0;
+				tries ++;
+			}
+			if(comm_receivedMsg()) //Slave answered
+			{
+				sm_comm_bidi = 2;
+			}
+			break;
+		case 2:
+			if(comm_calcChecksum(&receivedMessage) == receivedMessage.checksum) //Checksum matches, if write access write registers. Sens answer.
+			{
+				if(receivedMessage.reg == msg->reg)
+					sm_comm_bidi = 3;
+				else
+				{
+					sm_comm_bidi = 0;
+					tries ++;
+				}
+			}
+			else //Send last message again
+			{
+				sm_comm_bidi = 0;
+				tries ++;
+			}
+			break;
+		case 3: break; //Succeed
+		default: sm_comm_bidi = 0; tries ++;
+			break;
+		}
+	}
+
+	/*if(receivedMessage.batch_write) //Master wants to write into slave
+			{
+				for(uint8_t i = 0; i < receivedMessage.batch; i++)
+				{
+					comm_reg[receivedMessage.reg + i] = receivedMessage.data[i];
+				}
+			}*/
+	comm_listen();
+
+	if(tries == max_tries)
+		return 0;
+	else
+		return 1;
 }
 
 /////////////////////////////////////////////////////////////////////
