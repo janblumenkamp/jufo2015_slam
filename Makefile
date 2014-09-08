@@ -154,6 +154,7 @@ SRC+=slamcore.c
 SRC+=printf.c
 SRC+=stm32_ub_touch_ADS7843.c
 SRC+=gui_graphics.c
+SRC+=comm_api.c
 
 CDEFS=-DUSE_STDPERIPH_DRIVER
 CDEFS+=-DSTM32F4XX

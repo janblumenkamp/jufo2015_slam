@@ -1,6 +1,13 @@
+/////////////////////////////////////////////////////////////////////////////////
+/// Communication with slave
+/////////////////////////////////////////////////////////////////////////////////
+
 #ifndef COMM_H
 #define COMM_H
 
-extern void init_comm(void);
+#define COMM_REGSIZE 53 //In bytes. Size of the register.
+
+//Handles all queries. To call as often as possible!
+extern void comm_handler(void);
 
 #endif // COMM_H

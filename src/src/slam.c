@@ -9,6 +9,8 @@
 #include "printf.h"
 #include "xv11.h"
 #include "main.h"
+#include "comm.h"
+#include "comm_api.h"
 
 #include "gui.h"
 #include "slam.h"
@@ -36,21 +38,51 @@ portTASK_FUNCTION( vSLAMTask, pvParameters ) {
 
 	xLastWakeTime = xTaskGetTickCount();
 
-	slam_init(&slam, 1000, 100, 0, 0, (XV11_t *) &xv11, NULL, NULL);
+	slam_init(&slam, 1000, 1000, 0, 0, (XV11_t *) &xv11, NULL, NULL);
 	//slam_laserRayToMap(&slam, 85, 33, 220, 33, 210, 33, 255, 100);
 
-	while(xv11_state(XV11_GETSTATE) != XV11_ON);
+	//while(xv11_state(XV11_GETSTATE) != XV11_ON);
 
 	//slam_map_update(&slam, 100, 50);
 
 	for(;;)
 	{
-		slam_map_update(&slam, 50, 60);
+		/*sendMessage.batch_write = 1;
+		sendMessage.batch = 9;
+		sendMessage.reg = 0;
+		uint8_t mesg[10];
+		sendMessage.data = mesg;
+		for(uint8_t i = 0; i < 9; i++)
+		{
+			sendMessage.data[i] = i;
+		}
+		comm_sendPackage(&sendMessage);*/
+		USART_SendData(USART3, 0xAB);
+		USART_SendData(USART3, 5);
+
+		/*printf("Sent message!\n Wait for response...\n");
+
+		while(!comm_receivedMsg());
+		printf("Response Received!\n");
+		if(receivedMessage.checksum == comm_calcChecksum(&receivedMessage))
+		{
+			printf("successfully sent and received packages!\n");
+			for(uint8_t i = 0; i < receivedMessage.batch; i++)
+				printf("data%i: %i", i, receivedMessage.data[i]);
+		}
+		else
+		{
+			printf("Error: wrong checksum!\n");
+		}*/
+		//if(receivedMessage)
+
+
+		//slam_map_update(&slam, 50, 60);
 		//int var = slam_distanceScanToMap(&slam);
 		//printf("dist: %i\n", var);
 
 		//ts_iterative_map_building(&sensor_data, &state);
-		vTaskDelayUntil( &xLastWakeTime, ( 200 / portTICK_RATE_MS ) );
+		vTaskDelayUntil( &xLastWakeTime, ( 1000 / portTICK_RATE_MS ) );
 	}
 }
 

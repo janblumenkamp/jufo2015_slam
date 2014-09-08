@@ -44,6 +44,7 @@
 #include "gui.h"
 #include "slam.h"
 #include "comm.h"
+#include "comm_api.h"
 
 #include "stm32_ub_touch_ADS7843.h"
 
@@ -77,7 +78,7 @@ int main( void )
 	//HwInit();
 	LCD_ResetDevice();
 	UB_Touch_Init();
-	init_comm();
+	comm_init();
 	gui_init();
 	vUSART2_Init();
 	xv11_init();

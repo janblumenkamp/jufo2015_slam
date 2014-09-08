@@ -20,6 +20,8 @@
 #include "gui.h"
 #include "main.h"
 #include "printf.h"
+#include "comm_api.h"
+#include "comm.h"
 
 // ============================================================================
 portTASK_FUNCTION( vDebugTask, pvParameters ) {
@@ -32,6 +34,7 @@ portTASK_FUNCTION( vDebugTask, pvParameters ) {
 	#if(configDEBUG_MESSAGES == 1)
 		printf("xTask DEBUG started.\r\n");
 	#endif
+
 
 	for(;;) {
 
