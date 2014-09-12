@@ -262,11 +262,13 @@ void comm_sendPackage(comm_msg_t *msg)
 ///		times.
 /// \param msg
 ///		Message to send
+/// \param receivedData
+///		If this query is a read query, here the received information will be saved.
 /// \param max_tries
 /// \return
 ///		true or false (success/no success)
 
-uint8_t comm_bidirectionalPackage(comm_msg_t *msg, uint8_t max_tries)
+uint8_t comm_bidirectionalPackage(comm_msg_t *msg, uint8_t *receivedData, uint8_t max_tries)
 {
 	uint8_t tries = 0;
 	uint8_t sm_comm_bidi = 0;
@@ -276,13 +278,15 @@ uint8_t comm_bidirectionalPackage(comm_msg_t *msg, uint8_t max_tries)
 	{
 		switch (sm_comm_bidi) {
 		case 0:
-			comm_listen();
+			comm_listen(); //Activate the listener (has to happen before we send the package)
+			if((!msg->batch_write) && (receivedData != NULL)) //If we want to send a read request, we have to initialize the array in which the slave tranfers the requested data
+				receivedMessage.data = receivedData;
 			comm_sendPackage(msg);
 			responseDuration = 0;
 			sm_comm_bidi = 1;
 		case 1:
 			responseDuration ++;
-			if(responseDuration >= 65000)
+			if(responseDuration >= 65000) //No answer from slave... Try to send the message again!
 			{
 				sm_comm_bidi = 0;
 				tries ++;
@@ -295,9 +299,9 @@ uint8_t comm_bidirectionalPackage(comm_msg_t *msg, uint8_t max_tries)
 		case 2:
 			if(comm_calcChecksum(&receivedMessage) == receivedMessage.checksum) //Checksum matches, if write access write registers. Sens answer.
 			{
-				if(receivedMessage.reg == msg->reg)
+				if(receivedMessage.reg == msg->reg) //Success!
 					sm_comm_bidi = 3;
-				else
+				else //We got an answer, but the register is not matching (probably 254, which is the error register -> The slave wasn’t able to calculate the right checksum). Send again.
 				{
 					sm_comm_bidi = 0;
 					tries ++;

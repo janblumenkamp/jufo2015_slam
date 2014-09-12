@@ -189,14 +189,14 @@ void gui_el_event_area_map(ELEMENT_EVENT *event)
 {
 	if(event->doubleclick)
 	{
-		slam.robot_pos.psi += 15;
+		slam.robot_pos.psi += 45;
 		if(slam.robot_pos.psi > 359)
 			slam.robot_pos.psi = 0;
 	}
 	else if(event->clicked)
 	{
 		slam.robot_pos.coord.x = (Touch_Data.pos.xp - gui_element[GUI_EL_AREA_MAP].x) * MAP_RESOLUTION_MM;
-		slam.robot_pos.coord.y = (Touch_Data.pos.yp - gui_element[GUI_EL_AREA_MAP].y) * MAP_RESOLUTION_MM;
+		slam.robot_pos.coord.y = MAP_SIZE_Y_MM - (Touch_Data.pos.yp - gui_element[GUI_EL_AREA_MAP].y) * MAP_RESOLUTION_MM;
 
 		for(u8 z = 0; z < MAP_SIZE_Z_LAYERS; z ++)
 			for(u16 y = 0; y < (MAP_SIZE_Y_MM/MAP_RESOLUTION_MM); y++)
@@ -204,6 +204,7 @@ void gui_el_event_area_map(ELEMENT_EVENT *event)
 					slam.map.px[x][y][z] = 127;
 	}
 
+	//printf("new robot position x: %i, y: %i, psi: %i\n", slam.robot_pos.coord.x, slam.robot_pos.coord.y, slam.robot_pos.psi);
 }
 
 /////////////////////////////////////////////////////////////////////////////

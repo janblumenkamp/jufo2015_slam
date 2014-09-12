@@ -16,9 +16,10 @@
 
 #define LASERSCAN_ANGLE		360 //degree
 #define LASERSCAN_POINTS	360 //Amount of scans per LASERSCAN_ANGLE ->_POINTS/_ANGLE = resolution of Laserscanner
+#define LASERSCAN_OFFSET	270 //Orientation of the lidar on the robot (where is the scan showing to the front?)
 
 #define ODOMETER_TICKS_PER_REV	360 //Odometer ticks per revolution
-#define WHEEL_RADIUS			20
+#define WHEEL_RADIUS			26
 
 //Map
 #define MAP_SIZE_X_MM			2000
@@ -34,15 +35,15 @@
 
 //Coordinates: location in room (x, y, z)
 typedef struct {
-	int16_t x;
-	int16_t y;
+	float x;
+	float y;
 	int8_t z;
 } slam_coordinates_t;
 
 // Position: coordinates and orientation (angle (psi))
 typedef struct {
 	slam_coordinates_t coord;
-	int16_t psi;
+	float psi;
 } slam_position_t;
 
 //Datastruct: (Pointer to) all relevant sensor/hardware information of the robot

@@ -111,9 +111,12 @@ void slam_laserRayToMap(slam_t *slam,
 	incptrx = (x2 > x1) ? 1 : -1;
 	incptry = (y2 > y1) ? (MAP_SIZE_Y_MM/MAP_RESOLUTION_MM) : -(MAP_SIZE_Y_MM/MAP_RESOLUTION_MM);
 	sincv = (value > NO_OBSTACLE) ? 1 : -1;
-	if (dx > dy) {
+	if (dx > dy)
+	{
 		derrorv = abs(xp - x2);
-	} else {
+	}
+	else
+	{
 		//SWAP(dx, dy); SWAP(dxc, dyc); SWAP(incptrx, incptry);
 		dx ^= dy;
 		dy ^= dx;
@@ -135,21 +138,28 @@ void slam_laserRayToMap(slam_t *slam,
 	errorv = derrorv / 2;
 	incv = (value - NO_OBSTACLE) / derrorv;
 	incerrorv = value - NO_OBSTACLE - derrorv * incv;
-	ptr = &slam->map.px[0][0][slam->robot_pos.coord.z] + y1 * (MAP_SIZE_Y_MM/MAP_RESOLUTION_MM) + x1;
+	ptr = &slam->map.px[0][0][slam->robot_pos.coord.z] + y1 * (MAP_SIZE_Y_MM / MAP_RESOLUTION_MM) + x1;
 	pixval = NO_OBSTACLE;
-	for (x = 0; x <= dxc; x++, ptr += incptrx) {
-		if (x > dx - 2 * derrorv) {
-			if (x <= dx - derrorv) {
+	for (x = 0; x <= dxc; x++, ptr += incptrx)
+	{
+		if (x > dx - 2 * derrorv)
+		{
+			if (x <= dx - derrorv)
+			{
 				pixval += incv;
 				errorv += incerrorv;
-				if (errorv > derrorv) {
+				if (errorv > derrorv)
+				{
 					pixval += sincv;
 					errorv -= derrorv;
 				}
-			} else {
+			}
+			else
+			{
 				pixval -= incv;
 				errorv -= incerrorv;
-				if (errorv < 0) {
+				if (errorv < 0)
+				{
 					pixval -= sincv;
 					errorv += derrorv;
 				}
@@ -157,10 +167,12 @@ void slam_laserRayToMap(slam_t *slam,
 		}
 		// Integration into the map
 		*ptr = ((256 - alpha) * (*ptr) + alpha * pixval) >> 8;
-		if (error > 0) {
+		if (error > 0)
+		{
 			ptr += incptry;
 			error += diago;
-		} else error += horiz;
+		}
+		else error += horiz;
 	}
 }
 
@@ -195,17 +207,19 @@ void slam_laserRayToMap(slam_t *slam,
 
 void slam_map_update(slam_t *slam, int quality, int hole_width)
 {
-	float c, s, lidar_x, lidar_y;
+	float c, s;
 	float x2p, y2p;
+	int i, x1, y1, x2, y2, xp, yp;
 	float add, dist;
-	int x1, y1, x2, y2, xp, yp; //Needed for slam_laserRayToMap
 
-	c = cosf(slam->robot_pos.psi * M_PI / 180);
-	s = sinf(slam->robot_pos.psi * M_PI / 180);
-	x1 = (int)floorf(slam->robot_pos.coord.x / MAP_RESOLUTION_MM); //Rounds off. Startposition of the lidar/laserray
-	y1 = (int)floorf(slam->robot_pos.coord.y / MAP_RESOLUTION_MM);
+	float lidar_x, lidar_y;
 
-	for (u16 i = 0; i < 360; i++)
+	c = cosf((270 + slam->robot_pos.psi) * M_PI / 180);
+	s = sinf((270 + slam->robot_pos.psi) * M_PI / 180);
+	x1 = (int)floorf(slam->robot_pos.coord.y / MAP_RESOLUTION_MM + 0.5);
+	y1 = (int)floorf((slam->robot_pos.coord.x) / MAP_RESOLUTION_MM + 0.5);
+	// Translate and rotate scan to robot position
+	for (i = 0; i != 360; i++)
 	{
 		if(slam->sensordata.xv11->dist_polar[i] != XV11_VAR_NODATA)
 		{
@@ -215,18 +229,18 @@ void slam_map_update(slam_t *slam, int quality, int hole_width)
 			x2p = c * lidar_x - s * lidar_y;
 			y2p = s * lidar_x + c * lidar_y;
 
-			xp = (int)floorf((slam->robot_pos.coord.x + x2p) / MAP_RESOLUTION_MM);
-			yp = (int)floorf((slam->robot_pos.coord.y + y2p) / MAP_RESOLUTION_MM);
+			xp = (int)floorf((slam->robot_pos.coord.y + x2p) / MAP_RESOLUTION_MM + 0.5);
+			yp = (int)floorf((slam->robot_pos.coord.x + y2p) / MAP_RESOLUTION_MM + 0.5);
 
 			dist = sqrtf(x2p * x2p + y2p * y2p);
 			add = hole_width / 2 / dist;
-			x2p *= ((1 + add) / MAP_RESOLUTION_MM);
-			y2p *= ((1 + add) / MAP_RESOLUTION_MM);
+			x2p = x2p / MAP_RESOLUTION_MM * (1 + add);
+			y2p = y2p / MAP_RESOLUTION_MM * (1 + add);
 
-			x2 = (int)floorf(slam->robot_pos.coord.x / MAP_RESOLUTION_MM + x2p);
-			y2 = (int)floorf(slam->robot_pos.coord.y / MAP_RESOLUTION_MM + y2p);
+			x2 = (int)floorf(slam->robot_pos.coord.y / MAP_RESOLUTION_MM + x2p + 0.5);
+			y2 = (int)floorf(slam->robot_pos.coord.x / MAP_RESOLUTION_MM + y2p + 0.5);
 
-			slam_laserRayToMap(slam, y1, x1, y2, x2, yp, xp, IS_OBSTACLE, quality); //Change x/y - otherwise map is mirrored
+			slam_laserRayToMap(slam, x1, y1, x2, y2, xp, yp, IS_OBSTACLE, quality);
 		}
 	}
 }
@@ -246,8 +260,8 @@ int slam_distanceScanToMap(slam_t *slam, slam_position_t *position)
 	float c, s, lidar_x, lidar_y;
 	int i, x, y, nb_points = 0, sum = 0;
 
-	c = cosf(position->psi * M_PI / 180);
-	s = sinf(position->psi * M_PI / 180);
+	c = cosf((LASERSCAN_OFFSET - position->psi) * M_PI / 180);
+	s = sinf((LASERSCAN_OFFSET - position->psi) * M_PI / 180);
 	// Translate and rotate scan to robot position
 	// and compute the distance
 	for (i = 0; i < 360; i++)

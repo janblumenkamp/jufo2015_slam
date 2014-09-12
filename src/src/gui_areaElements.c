@@ -140,29 +140,32 @@ void gui_drawAREAmap(GUI_ELEMENT *element)
 
 
 		LCD_Line(element->x + (slam.robot_pos.coord.x / MAP_RESOLUTION_MM),
-				 element->y + (slam.robot_pos.coord.y / MAP_RESOLUTION_MM),
-				 element->x + (slam.robot_pos.coord.x / MAP_RESOLUTION_MM) + 10 * sinf((290 + slam.robot_pos.psi) * (M_PI / 180)),
-				 element->y + (slam.robot_pos.coord.y / MAP_RESOLUTION_MM) + 10 * cosf((290 + slam.robot_pos.psi) * (M_PI / 180)),
+				 element->y + (MAP_SIZE_Y_MM - slam.robot_pos.coord.y) / MAP_RESOLUTION_MM,
+				 element->x + (slam.robot_pos.coord.x / MAP_RESOLUTION_MM) + 10 * sinf((70 + slam.robot_pos.psi) * (M_PI / 180)),
+				 element->y + (MAP_SIZE_Y_MM - slam.robot_pos.coord.y) / MAP_RESOLUTION_MM - 10 * cosf((70 + slam.robot_pos.psi) * (M_PI / 180)),
 				 LCD_COLOR_RED);
 		LCD_Line(element->x + (slam.robot_pos.coord.x / MAP_RESOLUTION_MM),
-				 element->y + (slam.robot_pos.coord.y / MAP_RESOLUTION_MM),
-				 element->x + (slam.robot_pos.coord.x / MAP_RESOLUTION_MM) + 10 * sinf((250 + slam.robot_pos.psi) * (M_PI / 180)),
-				 element->y + (slam.robot_pos.coord.y / MAP_RESOLUTION_MM) + 10 * cosf((250 + slam.robot_pos.psi) * (M_PI / 180)),
+				 element->y + (MAP_SIZE_Y_MM - slam.robot_pos.coord.y) / MAP_RESOLUTION_MM,
+				 element->x + (slam.robot_pos.coord.x / MAP_RESOLUTION_MM) + 10 * sinf((110 + slam.robot_pos.psi) * (M_PI / 180)),
+				 element->y + (MAP_SIZE_Y_MM - slam.robot_pos.coord.y) / MAP_RESOLUTION_MM - 10 * cosf((110 + slam.robot_pos.psi) * (M_PI / 180)),
 				 LCD_COLOR_RED);
-		/*LCD_Line(element->x,
-				 element->y + element->heigth,
-				 element->x + element->length - 40,
-				 element->y + element->heigth,
-				 GUI_COLOR_FONT);
 
-		LCD_Line(element->x + element->length,
-				 element->y,
-				 element->x + element->length,
-				 element->y + element->heigth - 40,
-				 GUI_COLOR_FONT);*/
-
-		//u16 mapval = 0;
-
+		for(uint8_t i = 0; i <= MAP_SIZE_X_MM/200; i ++)
+		{
+			LCD_Line(element->x + 1 + (i * 20),
+					 element->y + element->heigth,
+					 element->x + 1 + (i * 20),
+					 element->y + element->heigth - 4,
+					 GUI_COLOR_FONT);
+		}
+		for(uint8_t i = 0; i <= MAP_SIZE_Y_MM/200; i ++)
+		{
+			LCD_Line(element->x + 202,
+					 element->y + 1 + (i * 20),
+					 element->x + 207,
+					 element->y + 1 + (i * 20),
+					 GUI_COLOR_FONT);
+		}
 
 		if(show_scan)
 		{

@@ -77,7 +77,7 @@ extern uint16_t comm_calcChecksum(comm_msg_t *msg);
 extern void comm_sendPackage(comm_msg_t *msg);
 
 //Sends given package, listens for answer and manages it
-uint8_t comm_bidirectionalPackage(comm_msg_t *msg, uint8_t max_tries);
+uint8_t comm_bidirectionalPackage(comm_msg_t *msg, uint8_t *receivedData, uint8_t max_tries);
 
 // returns true if received new message in ISR
 extern uint8_t comm_receivedMsg(void);

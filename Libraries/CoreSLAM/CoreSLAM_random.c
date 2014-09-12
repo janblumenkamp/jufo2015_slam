@@ -20,15 +20,15 @@ float ts_random_normal_fix(ts_randomizer_t *d)
         { // iz==0, handle the base strip
             do
             {	
-                x=-log(UNI(d))*0.2904764;   
+				x=-logf(UNI(d))*0.2904764;
                 // .2904764 is 1/r				
-                y=-log(UNI(d));			
+				y=-logf(UNI(d));
             } while(y+y<x*x);
             return (d->hz>0)? r+x : -r-x;	
         }
         
         // iz>0, handle the wedges of other strips		
-        if( d->fn[d->iz]+UNI(d)*(d->fn[d->iz-1]-d->fn[d->iz]) < exp(-.5*x*x) ) 
+		if( d->fn[d->iz]+UNI(d)*(d->fn[d->iz-1]-d->fn[d->iz]) < expf(-.5*x*x) )
             return x;
         // Start all over		
         d->hz=SHR3(d);		
@@ -56,17 +56,17 @@ void ts_random_init(ts_randomizer_t *d, unsigned long jsrseed)
     d->jsr=jsrseed;
     
     // Set up tables for Normal	  
-    q=vn/exp(-.5*dn*dn);  
+	q=vn/expf(-.5*dn*dn);
     d->kn[0]=(int)((dn/q)*m1);	  
     d->kn[1]=0;		  
     d->wn[0]=q/m1; d->wnt[0]=q;
     d->wn[127]=dn/m1; d->wnt[127]=dn;
     d->fn[0]=1.;	  
-    d->fn[127]=exp(-.5*dn*dn);		
+	d->fn[127]=expf(-.5*dn*dn);
     for(i=126;i>=1;i--) {   
-        dn=sqrt(-2.*log(vn/dn+exp(-.5*dn*dn)));          
+		dn=sqrtf(-2.*logf(vn/dn+expf(-.5*dn*dn)));
         d->kn[i+1]=(int)((dn/tn)*m1);		  tn=dn;          
-        d->fn[i]=exp(-.5*dn*dn);          
+		d->fn[i]=expf(-.5*dn*dn);
         d->wn[i]=dn/m1;     d->wnt[i]=dn; 
     }
 }
@@ -112,7 +112,7 @@ ts_position_t ts_monte_carlo_search(ts_randomizer_t *randomizer, ts_scan_t *scan
 	if (currentdist < bestdist) {
 	    bestdist = currentdist;
 	    bestpos = currentpos;
-            if (debug) printf("Monte carlo ! %lg %lg %lg %d (count = %d)\n", bestpos.x, bestpos.y, bestpos.theta, bestdist, counter);
+			if (debug) printf("Monte carlo ! %i %i %i %d (count = %d)\n", (int)(bestpos.x), (int)(bestpos.y), (int)(bestpos.theta), bestdist, counter);
 	} else {
 	    counter++;
 	}

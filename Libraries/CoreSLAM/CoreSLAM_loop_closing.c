@@ -33,10 +33,12 @@ ts_close_loop_trajectory(ts_sensor_data_t *sensor_data, int maxscans,
             while (theta[j] >= 360) theta[j] -= 360;
         }
         if (fabs(theta[0] - theta[1]) >= 180)
-            if (theta[0] > theta[1]) 
+		{
+			if (theta[0] > theta[1])
                 theta[0] -= 360;
             else
                 theta[1] -= 360;
+		}
         final_pos->theta = (1 - weight) * theta[0] + weight * theta[1];
     }
 }

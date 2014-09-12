@@ -6,7 +6,7 @@
 void
 ts_state_init(ts_state_t *state, ts_map_t *map, ts_robot_parameters_t *params, ts_laser_parameters_t *laser_params, ts_position_t *position, float sigma_xy, float sigma_theta, int hole_width, int direction)
 {
-	//ts_random_init(&state->randomizer, 0xdead);
+	ts_random_init(&state->randomizer, 0xdead);
     state->map = map;
     state->params = *params;
     state->laser_params = *laser_params;
