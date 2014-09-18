@@ -61,57 +61,17 @@ portTASK_FUNCTION( vSLAMTask, pvParameters ) {
 	{
 		uint32_t timer_slam = systemTick; //Timer for executing task with max. 5Hz
 
-		/*if(mapping)
-			slam_map_update(&slam, 80, 100);
-		else
-		{
-			int best_result = 0;
-			int best_res_angle = 0;
-
-			slam_position_t tmpPos;
-			tmpPos = slam.robot_pos;
-
-			for(int16_t i = 500; i < 1500; i++)
-			{
-				tmpPos.coord.x = i;
-
-				int result = slam_distanceScanToMap(&slam, &tmpPos);
-				if(result > best_result)
-				{
-					best_result = result;
-					best_res_angle = i;
-				}
-			}
-			printf("bestresult: %i, angle: %i\n", best_result, best_res_angle);
-		}*/
-
 		if(mapping)
 		{
-			int reg = (230 - xv11.dist_polar[140])/20;
-
-			int speed = (20 + reg); //Geschwindigkeit auf MAXSPEED begrenzen
-			if(speed > 20)
-				speed = 20;
-			if(speed < 0)
-			  speed  = 0;
-			motor.speed_l_to = speed;
-
-			speed = (20 - reg);
-			if(speed > 20)
-			  speed = 20;
-			if(speed < -20)
-			  speed  = -20;
-			motor.speed_r_to = speed;
-
 			slam_processMovement(&slam);
 			int best = 0;
-			best = slam_monteCarloSearch(&slam, 50, 12, 600);
-			slam_map_update(&slam, 7, 100);
+			best = slam_monteCarloSearch(&slam, 50, 10, 600);
+			slam_map_update(&slam, 7, 120);
 			printf("time: %i, quality: %i, pos x: %i, pos y: %i, psi: %i\n", (int)(systemTick - timer_slam), best, (int)slam.robot_pos.coord.x, (int)slam.robot_pos.coord.y, (int)slam.robot_pos.psi);
 		}
 		else
 		{
-			slam_map_update(&slam, 100, 100);
+			slam_map_update(&slam, 100, 120);
 			motor.speed_l_to = 0;
 			motor.speed_r_to = 0;
 		}

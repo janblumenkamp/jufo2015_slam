@@ -110,6 +110,7 @@ SRC+=utils.c
 SRC+=gui_areaElements.c
 SRC+=slam.c
 SRC+=comm.c
+SRC+=drive.c
 
 #SSD1963
 SRC+=SSD1963.c

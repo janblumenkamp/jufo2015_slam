@@ -67,6 +67,7 @@ void gui_el_pages_putInvisible(void)
 	gui_element[GUI_EL_SW_STARTMAPPING].state = GUI_EL_INVISIBLE;
 	gui_element[GUI_EL_SW_SHOWSCAN].state = GUI_EL_INVISIBLE;
 	gui_element[GUI_EL_AREA_MAP].state = GUI_EL_INVISIBLE;
+	gui_element[GUI_EL_BTN_CLEARMAP].state = GUI_EL_INVISIBLE;
 
 	//View
 
@@ -182,6 +183,21 @@ void gui_el_event_sw_showScan(ELEMENT_EVENT *event)
 }
 
 ////////////////////////////////////////////////////////////////////////////
+/// \brief gui_el_event_btn_clearMap
+/// \param event
+
+void gui_el_event_btn_clearMap(ELEMENT_EVENT *event)
+{
+	if(event->released)
+	{
+		for(u8 z = 0; z < MAP_SIZE_Z_LAYERS; z ++)
+			for(u16 y = 0; y < (MAP_SIZE_Y_MM/MAP_RESOLUTION_MM); y++)
+				for(u16 x = 0; x < (MAP_SIZE_X_MM / MAP_RESOLUTION_MM); x ++)
+					slam.map.px[x][y][z] = 127;
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////
 /// \brief gui_el_event_area_map
 /// \param event
 
@@ -197,11 +213,6 @@ void gui_el_event_area_map(ELEMENT_EVENT *event)
 	{
 		slam.robot_pos.coord.x = (Touch_Data.pos.xp - gui_element[GUI_EL_AREA_MAP].x) * MAP_RESOLUTION_MM;
 		slam.robot_pos.coord.y = MAP_SIZE_Y_MM - (Touch_Data.pos.yp - gui_element[GUI_EL_AREA_MAP].y) * MAP_RESOLUTION_MM;
-
-		/*for(u8 z = 0; z < MAP_SIZE_Z_LAYERS; z ++)
-			for(u16 y = 0; y < (MAP_SIZE_Y_MM/MAP_RESOLUTION_MM); y++)
-				for(u16 x = 0; x < (MAP_SIZE_X_MM / MAP_RESOLUTION_MM); x ++)
-					slam.map.px[x][y][z] = 127;*/
 	}
 
 	//printf("new robot position x: %i, y: %i, psi: %i\n", slam.robot_pos.coord.x, slam.robot_pos.coord.y, slam.robot_pos.psi);
@@ -329,6 +340,7 @@ void gui_init(void)
 		gui_element[GUI_EL_SW_STARTMAPPING].id = EL_ID_SW;
 		gui_element[GUI_EL_SW_SHOWSCAN].id = EL_ID_SW;
 		//gui_element[GUI_EL_SLI_MAP_SCALE].id = EL_ID_SLI;
+		gui_element[GUI_EL_BTN_CLEARMAP].id = EL_ID_BTN;
 	gui_element[GUI_EL_MBTN_VIEW].id = EL_ID_MBTN;
 	gui_element[GUI_EL_MBTN_SETTINGS].id = EL_ID_MBTN;
 		gui_element[GUI_EL_BTN_CALTOUCH].id = EL_ID_BTN;
@@ -367,6 +379,12 @@ void gui_init(void)
 		gui_element[GUI_EL_SW_SHOWSCAN].x = PAGE_GRID_DIST;
 		gui_element[GUI_EL_SW_SHOWSCAN].y = gui_element[GUI_EL_SW_STARTMAPPING].y + gui_element[GUI_EL_SW_STARTMAPPING].heigth + PAGE_GRID_DIST;
 		gui_element[GUI_EL_SW_SHOWSCAN].state = SW_OFF;
+
+		gui_element[GUI_EL_BTN_CLEARMAP].label = (char *)"Clear map";
+		gui_element[GUI_EL_BTN_CLEARMAP].action = &gui_el_event_btn_clearMap;
+		gui_element[GUI_EL_BTN_CLEARMAP].x = PAGE_GRID_DIST;
+		gui_element[GUI_EL_BTN_CLEARMAP].y = gui_element[GUI_EL_SW_SHOWSCAN].y + gui_element[GUI_EL_SW_SHOWSCAN].heigth + PAGE_GRID_DIST;
+		gui_element[GUI_EL_BTN_CLEARMAP].state = GUI_EL_INVISIBLE;
 
 		gui_element[GUI_EL_AREA_MAP].x = gui_element[GUI_EL_SW_STARTMAPPING].x + gui_element[GUI_EL_SW_STARTMAPPING].length + PAGE_GRID_DIST;
 		gui_element[GUI_EL_AREA_MAP].y = gui_element[GUI_EL_SW_STARTMAPPING].y;
@@ -467,6 +485,8 @@ portTASK_FUNCTION( vGUITask, pvParameters )
 
 			//Area Map
 			//SW Startmapping
+			//SW Show scan
+			//BTN Clear map
 			// //Map_Scale
 
 			gui_element[GUI_EL_AREA_MAP].state = GUI_EL_INTOUCHABLE;
@@ -477,8 +497,11 @@ portTASK_FUNCTION( vGUITask, pvParameters )
 
 			gui_element[GUI_EL_AREA_MAP].state = MAP_ACTIVE;
 
+			gui_element[GUI_EL_BTN_CLEARMAP].state = BTN_NOT_ACTIVE;
+
 			gui_drawSW(&gui_element[GUI_EL_SW_STARTMAPPING]);
 			gui_drawSW(&gui_element[GUI_EL_SW_SHOWSCAN]);
+			gui_drawBTN(&gui_element[GUI_EL_BTN_CLEARMAP]);
 
 			timer_drawMap = 0;
 

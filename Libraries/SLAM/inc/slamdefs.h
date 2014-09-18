@@ -22,10 +22,10 @@
 #define WHEEL_RADIUS			26
 
 //Map
-#define MAP_SIZE_X_MM			2000
-#define MAP_SIZE_Y_MM			2000
+#define MAP_SIZE_X_MM			3000
+#define MAP_SIZE_Y_MM			3000
 #define MAP_SIZE_Z_LAYERS		1		//Amount of layers of the map
-#define MAP_RESOLUTION_MM		10
+#define MAP_RESOLUTION_MM		15
 
 #define MAP_VAR_MAX			255 //Overflow of map pixel
 #define MAP_VAR_MIN			0 //Underflow of map pixel

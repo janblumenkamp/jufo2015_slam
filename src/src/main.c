@@ -51,18 +51,21 @@
 #include "stm32_ub_pwm_tim3.h"
 
 // Task priorities: Higher numbers are higher priority.
-#define mainTIME_TASK_PRIORITY      ( tskIDLE_PRIORITY + 3 )
+#define mainTIME_TASK_PRIORITY      ( tskIDLE_PRIORITY + 4 )
+#define mainDRIVE_TASK_PRIORITY       ( tskIDLE_PRIORITY + 3 )
 #define mainSLAM_TASK_PRIORITY       ( tskIDLE_PRIORITY + 2 )
 #define mainGUI_TASK_PRIORITY       ( tskIDLE_PRIORITY + 2 )
 #define mainDEBUG_TASK_PRIORITY     ( tskIDLE_PRIORITY + 1 )
 #define mainINTEGER_TASK_PRIORITY   ( tskIDLE_PRIORITY )
 
 xTaskHandle hTimeTask;
+xTaskHandle hDRIVETask;
 xTaskHandle hSLAMTask;
 xTaskHandle hGUITask;
 xTaskHandle hDebugTask;
 
 portTASK_FUNCTION_PROTO( vTimeTask, pvParameters );
+portTASK_FUNCTION_PROTO( vDRIVETask, pvParameters );
 portTASK_FUNCTION_PROTO( vSLAMTask, pvParameters );
 portTASK_FUNCTION_PROTO( vGUITask, pvParameters );
 portTASK_FUNCTION_PROTO( vDebugTask, pvParameters );
@@ -100,6 +103,8 @@ int main( void )
 	// Tasks get started here...
 	xTaskCreate( vTimeTask, "TIME", configMINIMAL_STACK_SIZE,
 			NULL, mainTIME_TASK_PRIORITY, &hTimeTask );
+	xTaskCreate( vDRIVETask, "DRIVE", configMINIMAL_STACK_SIZE,
+			NULL, mainDRIVE_TASK_PRIORITY, &hDRIVETask );
 	xTaskCreate( vSLAMTask, "SLAM", configMINIMAL_STACK_SIZE*3,
 			NULL, mainSLAM_TASK_PRIORITY, &hSLAMTask );
 	xTaskCreate( vGUITask, "GUI", configMINIMAL_STACK_SIZE * 4,
