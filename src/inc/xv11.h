@@ -1,12 +1,13 @@
 #ifndef XV11_H
 #define XV11_H
 
+#include "stm32f4xx.h"
 
 //Source: http://eliaselectronics.com/stm32f4-tutorials/stm32f4-usart-tutorial/
 
 #define XV11_SPEED_PWM_INIT		180 //MOSFET switches 5V to motor. 8bit PWM: (5/255)*170 ~~ 3.3V (optimal voltage, motor turns approx. with 300RPM)
 #define XV11_SPEED_IREG_INIT	180.0 //Should be (XV11_SPEED_PWM_INIT).0
-#define XV11_SPEED_RPM_TO		300.0 //Regulate speed to this value
+#define XV11_SPEED_RPM_TO		300.0 //5Hz; Regulate speed to this value
 #define XV11_SPEED_LIM			20.0	//RPM_TO +- Limit: Good results of XV11, otherwise set state to XV11_STARTING
 #define XV11_STATE_ON_CNT		250		//Before the state switches to "XV11_ON", the RPM has to be stable (not unter/above XV11_SPEED_LIM) for n iterations / n*4 measurements
 #define XV11_SPEED_MIN			50.0 //Lowest possible speed value

@@ -67,10 +67,10 @@ portTASK_FUNCTION_PROTO( vSLAMTask, pvParameters );
 portTASK_FUNCTION_PROTO( vGUITask, pvParameters );
 portTASK_FUNCTION_PROTO( vDebugTask, pvParameters );
 
-uint64_t u64Ticks=0;        // Counts OS ticks (default = 1000Hz).
-uint64_t u64IdleTicks=0;    // Value of u64IdleTicksCnt is copied once per sec.
-uint64_t u64IdleTicksCnt=0; // Counts when the OS has no task to execute.
-uint16_t u16PWM1=0;
+u_int32_t systemTick=0;        // Counts OS ticks (default = 1000Hz).
+u_int32_t u64IdleTicks=0;    // Value of u64IdleTicksCnt is copied once per sec.
+u_int32_t u64IdleTicksCnt=0; // Counts when the OS has no task to execute.
+u_int16_t u16PWM1=0;
 
 // ============================================================================
 int main( void )
@@ -146,7 +146,7 @@ portTASK_FUNCTION( vTimeTask, pvParameters ) {
 // This FreeRTOS callback function gets called once per tick (default = 1000Hz).
 // ---------------------------------------------------------------------------- 
 void vApplicationTickHook( void ) {
-    ++u64Ticks;
+	++systemTick;
 }
 
 // This FreeRTOS call-back function gets when no other task is ready to execute.

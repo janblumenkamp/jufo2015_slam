@@ -67,6 +67,8 @@ typedef struct {
 	slam_map_t map;
 } slam_t;
 
+int slam_monteCarloSearch(slam_t *slam, int sigma_xy, int sigma_psi, int stop);
+
 //Initialization of all relevant SLAM information
 extern void slam_init(slam_t *slam,
 					  int16_t rob_x_start, int16_t rob_y_start, u8 rob_z_start, int16_t rob_psi_start,

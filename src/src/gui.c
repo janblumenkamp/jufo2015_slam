@@ -198,10 +198,10 @@ void gui_el_event_area_map(ELEMENT_EVENT *event)
 		slam.robot_pos.coord.x = (Touch_Data.pos.xp - gui_element[GUI_EL_AREA_MAP].x) * MAP_RESOLUTION_MM;
 		slam.robot_pos.coord.y = MAP_SIZE_Y_MM - (Touch_Data.pos.yp - gui_element[GUI_EL_AREA_MAP].y) * MAP_RESOLUTION_MM;
 
-		for(u8 z = 0; z < MAP_SIZE_Z_LAYERS; z ++)
+		/*for(u8 z = 0; z < MAP_SIZE_Z_LAYERS; z ++)
 			for(u16 y = 0; y < (MAP_SIZE_Y_MM/MAP_RESOLUTION_MM); y++)
 				for(u16 x = 0; x < (MAP_SIZE_X_MM / MAP_RESOLUTION_MM); x ++)
-					slam.map.px[x][y][z] = 127;
+					slam.map.px[x][y][z] = 127;*/
 	}
 
 	//printf("new robot position x: %i, y: %i, psi: %i\n", slam.robot_pos.coord.x, slam.robot_pos.coord.y, slam.robot_pos.psi);

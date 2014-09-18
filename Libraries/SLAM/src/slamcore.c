@@ -258,25 +258,26 @@ void slam_map_update(slam_t *slam, int quality, int hole_width)
 int slam_distanceScanToMap(slam_t *slam, slam_position_t *position)
 {
 	float c, s, lidar_x, lidar_y;
-	int i, x, y, nb_points = 0, sum = 0;
+	int i, x, y, nb_points = 0;
+	float sum = 0;
 
-	c = cosf((LASERSCAN_OFFSET - position->psi) * M_PI / 180);
-	s = sinf((LASERSCAN_OFFSET - position->psi) * M_PI / 180);
+	c = cosf((270 + position->psi) * M_PI / 180);
+	s = sinf((270 + position->psi) * M_PI / 180);
 	// Translate and rotate scan to robot position
 	// and compute the distance
-	for (i = 0; i < 360; i++)
+	for (i = 0; i < 360; i += 4)
 	{
 		if(slam->sensordata.xv11->dist_polar[i] != XV11_VAR_NODATA)
 		{
 			lidar_x = (slam->sensordata.xv11->dist_polar[i] * sinf(i * (M_PI / 180)));
 			lidar_y = (slam->sensordata.xv11->dist_polar[i] * cosf(i * (M_PI / 180)));
 
-			x = (int)floorf((position->coord.x + c * lidar_x - s * lidar_y) / MAP_RESOLUTION_MM);
-			y = (int)floorf((position->coord.y + s * lidar_x + c * lidar_y) / MAP_RESOLUTION_MM);
-			// Check boundaries
-			if ((x >= 0) && (x < (MAP_SIZE_X_MM/MAP_RESOLUTION_MM)) && (y >= 0) && (y < (MAP_SIZE_Y_MM/MAP_RESOLUTION_MM)))
+			x = (int)floorf((position->coord.y + c * lidar_x - s * lidar_y) / MAP_RESOLUTION_MM + 0.25);
+			y = (int)floorf((position->coord.x + s * lidar_x + c * lidar_y) / MAP_RESOLUTION_MM + 0.25);
+
+			if((x >= 0) && (x < (MAP_SIZE_X_MM/MAP_RESOLUTION_MM)) && (y >= 0) && (y < (MAP_SIZE_Y_MM/MAP_RESOLUTION_MM)))
 			{
-				sum += slam->map.px[x][y][position->coord.z];
+				sum += *(&slam->map.px[0][0][slam->robot_pos.coord.z] + y * (MAP_SIZE_Y_MM / MAP_RESOLUTION_MM) + x);
 				nb_points++;
 			}
 		}
