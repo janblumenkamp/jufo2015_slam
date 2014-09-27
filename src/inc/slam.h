@@ -4,10 +4,6 @@
 #include "slamdefs.h"
 #include "main.h"
 
-#define WHEELDIST	260 //Distance between two wheels
-#define WHEELRADIUS	26
-#define TICKSPERREV	360
-
 //Motor information
 typedef struct {
 	int8_t speed_l_is;

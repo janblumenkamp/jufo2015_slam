@@ -24,7 +24,7 @@
 /// \param lidar_val
 ///		Pointer to the Lidar array of the lenght LASERSCAN_POINTS
 /// \param odo_l
-///		Pointer to the left odometer variable
+///		Pointer to the left odometer variable. ATTENTION: IF THE VALUE ALREADY INCREASED, IT HAS TO KEEP THE VALUE, OTHERWISE THE ROBOT WILL JUMP IN THE MAP!
 /// \param odo_r
 ///		Pointer to the right odometer variable
 ///
@@ -46,6 +46,8 @@ void slam_init(slam_t *slam,
 	slam->sensordata.xv11 = xv11;
 	slam->sensordata.odo_l = odo_l;
 	slam->sensordata.odo_r = odo_r;
+	slam->sensordata.odo_l_old = *slam->sensordata.odo_l;
+	slam->sensordata.odo_r_old = *slam->sensordata.odo_r;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////
@@ -214,12 +216,12 @@ void slam_map_update(slam_t *slam, int quality, int hole_width)
 
 	float lidar_x, lidar_y;
 
-	c = cosf((270 + slam->robot_pos.psi) * M_PI / 180);
-	s = sinf((270 + slam->robot_pos.psi) * M_PI / 180);
+	c = cosf((LASERSCAN_OFFSET + slam->robot_pos.psi) * M_PI / 180);
+	s = sinf((LASERSCAN_OFFSET + slam->robot_pos.psi) * M_PI / 180);
 	x1 = (int)floorf(slam->robot_pos.coord.y / MAP_RESOLUTION_MM + 0.5);
 	y1 = (int)floorf((slam->robot_pos.coord.x) / MAP_RESOLUTION_MM + 0.5);
 	// Translate and rotate scan to robot position
-	for (i = 0; i != 360; i++)
+	for (i = 0; i < LASERSCAN_POINTS; i++)
 	{
 		if(slam->sensordata.xv11->dist_polar[i] != XV11_VAR_NODATA)
 		{
@@ -261,19 +263,19 @@ int slam_distanceScanToMap(slam_t *slam, slam_position_t *position)
 	int i, x, y, nb_points = 0;
 	float sum = 0;
 
-	c = cosf((270 + position->psi) * M_PI / 180);
-	s = sinf((270 + position->psi) * M_PI / 180);
+	c = cosf((LASERSCAN_OFFSET + position->psi) * M_PI / 180);
+	s = sinf((LASERSCAN_OFFSET + position->psi) * M_PI / 180);
 	// Translate and rotate scan to robot position
 	// and compute the distance
-	for (i = 0; i < 360; i += 4)
+	for (i = 0; i < LASERSCAN_POINTS; i += 4)
 	{
 		if(slam->sensordata.xv11->dist_polar[i] != XV11_VAR_NODATA)
 		{
 			lidar_x = (slam->sensordata.xv11->dist_polar[i] * sinf(i * (M_PI / 180)));
 			lidar_y = (slam->sensordata.xv11->dist_polar[i] * cosf(i * (M_PI / 180)));
 
-			x = (int)floorf((position->coord.y + c * lidar_x - s * lidar_y) / MAP_RESOLUTION_MM + 0.25);
-			y = (int)floorf((position->coord.x + s * lidar_x + c * lidar_y) / MAP_RESOLUTION_MM + 0.25);
+			x = (int)floorf((position->coord.y + c * lidar_x - s * lidar_y) / MAP_RESOLUTION_MM + 0.5);
+			y = (int)floorf((position->coord.x + s * lidar_x + c * lidar_y) / MAP_RESOLUTION_MM + 0.5);
 
 			if((x >= 0) && (x < (MAP_SIZE_X_MM/MAP_RESOLUTION_MM)) && (y >= 0) && (y < (MAP_SIZE_Y_MM/MAP_RESOLUTION_MM)))
 			{
@@ -285,4 +287,49 @@ int slam_distanceScanToMap(slam_t *slam, slam_position_t *position)
 	if (nb_points) sum = sum * 1024 / nb_points;
 	else sum = 2000000000;
 	return (int)sum;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \brief slam_processMovement
+///		Transfers the driven encoder distance to a cartesian posisition and adds it to the
+///		old robot position in the slam structure.
+/// \param slam
+///		slam container structure
+/// \param mot
+///		motor information structure
+///
+/// Source:
+/// http://www6.in.tum.de/Main/Publications/5224223.pdf
+
+void slam_processMovement(slam_t *slam)
+{
+	float dl_enc, dr_enc; //Driven distance (since last function call) in mm.
+	float dx = 0, dy = 0, dpsi = 0, dist_driven = 0;
+
+	dl_enc = (*slam->sensordata.odo_l - slam->sensordata.odo_l_old) * 2 * WHEELRADIUS * M_PI / TICKSPERREV;
+	dr_enc = (*slam->sensordata.odo_r - slam->sensordata.odo_r_old) * 2 * WHEELRADIUS * M_PI / TICKSPERREV;
+	slam->sensordata.odo_l_old = *slam->sensordata.odo_l;
+	slam->sensordata.odo_r_old = *slam->sensordata.odo_r;
+
+	if(fabsf(dl_enc - dr_enc) > 0)
+	{
+		float r = -WHEELDIST * (dl_enc + dr_enc) / (2 * (dr_enc - dl_enc));
+		dpsi = -(dr_enc - dl_enc) / WHEELDIST;
+
+		dx = r * sinf(dpsi + (slam->robot_pos.psi * 180 / M_PI)) - r * sinf((slam->robot_pos.psi * 180 / M_PI));
+		dy = -r * cosf(dpsi + (slam->robot_pos.psi * 180 / M_PI)) + r * cosf((slam->robot_pos.psi * 180 / M_PI));
+
+		dpsi *= 180 / M_PI; //Convert radian to degree
+	}
+	else // basically going straight
+	{
+		dx = dl_enc * cosf(slam->robot_pos.psi * M_PI / 180);
+		dy = dr_enc * sinf(slam->robot_pos.psi * M_PI / 180);
+	}
+
+	dist_driven = sqrtf(dx * dx + dy * dy);
+
+	slam->robot_pos.coord.x += dist_driven * cosf((180 - slam->robot_pos.psi + dpsi) * M_PI / 180);
+	slam->robot_pos.coord.y += dist_driven * sinf((180 - slam->robot_pos.psi + dpsi) * M_PI / 180);
+	slam->robot_pos.psi += dpsi;
 }

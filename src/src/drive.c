@@ -43,6 +43,8 @@ portTASK_FUNCTION( vDRIVETask, pvParameters ) {
 			if(speed < -20)
 			  speed  = -20;
 			motor.speed_r_to = speed;
+
+			comm_setMotor(&motor);
 		}
 
 		vTaskDelayUntil( &xLastWakeTime, ( 200 / portTICK_RATE_MS ) );
