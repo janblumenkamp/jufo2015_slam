@@ -136,7 +136,10 @@ void gui_drawAREAmap(GUI_ELEMENT *element)
 		LCD_SetClipRgn(element->x, element->y, element->x + element->length, element->y + element->heigth);
 		LCD_Rectangle(element->x, element->y, element->x + element->length, element->y + element->heigth, LCD_COLOR_BLACK, 0);
 
-		slam_LCD_DispMap(element->x + 1, element->y + 1, &slam); //Not nessesary to clear area (it is overwritten)
+		if(processedView)
+			slam_LCD_DispMapProcessed(element->x + 1, element->y + 1, &slam); //Not nessesary to clear area (it is overwritten)
+		else
+			slam_LCD_DispMap(element->x + 1, element->y + 1, &slam); //Not nessesary to clear area (it is overwritten)
 
 
 		LCD_Line(element->x + (slam.robot_pos.coord.x / MAP_RESOLUTION_MM),

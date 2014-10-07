@@ -45,6 +45,7 @@ void gui_el_event_area_statusbar(ELEMENT_EVENT *event);
 void gui_el_event_mbtn_map(ELEMENT_EVENT *event);
 void gui_el_event_sw_startMapping(ELEMENT_EVENT *event);
 void gui_el_event_sw_showScan(ELEMENT_EVENT *event);
+void gui_el_event_sw_processedview(ELEMENT_EVENT *event);
 void gui_el_event_mbtn_view(ELEMENT_EVENT *event);
 void gui_el_event_mbtn_settings(ELEMENT_EVENT *event);
 void gui_el_event_sw_lidar(ELEMENT_EVENT *event);
@@ -66,6 +67,7 @@ void gui_el_pages_putInvisible(void)
 	//Map
 	gui_element[GUI_EL_SW_STARTMAPPING].state = GUI_EL_INVISIBLE;
 	gui_element[GUI_EL_SW_SHOWSCAN].state = GUI_EL_INVISIBLE;
+	gui_element[GUI_EL_SW_PROCESSEDVIEW].state = GUI_EL_INVISIBLE;
 	gui_element[GUI_EL_AREA_MAP].state = GUI_EL_INVISIBLE;
 	gui_element[GUI_EL_BTN_CLEARMAP].state = GUI_EL_INVISIBLE;
 
@@ -178,6 +180,27 @@ void gui_el_event_sw_showScan(ELEMENT_EVENT *event)
 		{
 			show_scan = 0;
 			gui_element[GUI_EL_SW_SHOWSCAN].state = SW_OFF;
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////
+/// \brief gui_el_event_sw_processedview
+/// \param event
+
+void gui_el_event_sw_processedview(ELEMENT_EVENT *event)
+{
+	if(event->released)
+	{
+		if(gui_element[GUI_EL_SW_PROCESSEDVIEW].state == SW_OFF)
+		{
+			processedView = 1;
+			gui_element[GUI_EL_SW_PROCESSEDVIEW].state = SW_ON;
+		}
+		else
+		{
+			processedView = 0;
+			gui_element[GUI_EL_SW_PROCESSEDVIEW].state = SW_OFF;
 		}
 	}
 }
@@ -339,6 +362,7 @@ void gui_init(void)
 		gui_element[GUI_EL_AREA_MAP].id = EL_ID_AREA;
 		gui_element[GUI_EL_SW_STARTMAPPING].id = EL_ID_SW;
 		gui_element[GUI_EL_SW_SHOWSCAN].id = EL_ID_SW;
+		gui_element[GUI_EL_SW_PROCESSEDVIEW].id = EL_ID_SW;
 		//gui_element[GUI_EL_SLI_MAP_SCALE].id = EL_ID_SLI;
 		gui_element[GUI_EL_BTN_CLEARMAP].id = EL_ID_BTN;
 	gui_element[GUI_EL_MBTN_VIEW].id = EL_ID_MBTN;
@@ -380,10 +404,16 @@ void gui_init(void)
 		gui_element[GUI_EL_SW_SHOWSCAN].y = gui_element[GUI_EL_SW_STARTMAPPING].y + gui_element[GUI_EL_SW_STARTMAPPING].heigth + PAGE_GRID_DIST;
 		gui_element[GUI_EL_SW_SHOWSCAN].state = SW_OFF;
 
+		gui_element[GUI_EL_SW_PROCESSEDVIEW].label = (char *)"Processed:";
+		gui_element[GUI_EL_SW_PROCESSEDVIEW].action = &gui_el_event_sw_processedview;
+		gui_element[GUI_EL_SW_PROCESSEDVIEW].x = PAGE_GRID_DIST;
+		gui_element[GUI_EL_SW_PROCESSEDVIEW].y = gui_element[GUI_EL_SW_SHOWSCAN].y + gui_element[GUI_EL_SW_SHOWSCAN].heigth + PAGE_GRID_DIST;
+		gui_element[GUI_EL_SW_PROCESSEDVIEW].state = SW_OFF;
+
 		gui_element[GUI_EL_BTN_CLEARMAP].label = (char *)"Clear map";
 		gui_element[GUI_EL_BTN_CLEARMAP].action = &gui_el_event_btn_clearMap;
 		gui_element[GUI_EL_BTN_CLEARMAP].x = PAGE_GRID_DIST;
-		gui_element[GUI_EL_BTN_CLEARMAP].y = gui_element[GUI_EL_SW_SHOWSCAN].y + gui_element[GUI_EL_SW_SHOWSCAN].heigth + PAGE_GRID_DIST;
+		gui_element[GUI_EL_BTN_CLEARMAP].y = gui_element[GUI_EL_SW_PROCESSEDVIEW].y + gui_element[GUI_EL_SW_PROCESSEDVIEW].heigth + PAGE_GRID_DIST;
 		gui_element[GUI_EL_BTN_CLEARMAP].state = GUI_EL_INVISIBLE;
 
 		gui_element[GUI_EL_AREA_MAP].x = gui_element[GUI_EL_SW_STARTMAPPING].x + gui_element[GUI_EL_SW_STARTMAPPING].length + PAGE_GRID_DIST;
@@ -438,6 +468,7 @@ void gui_init(void)
 }
 
 u8 mapping = 0; //Is the robot running and mapping or is it waiting for the start?
+u8 processedView = 0;//Processed or raw view of the map?
 
 portTASK_FUNCTION( vGUITask, pvParameters )
 {
@@ -494,6 +525,8 @@ portTASK_FUNCTION( vGUITask, pvParameters )
 			else			gui_element[GUI_EL_SW_STARTMAPPING].state = SW_OFF;
 			if(show_scan)	gui_element[GUI_EL_SW_SHOWSCAN].state = SW_ON;
 			else			gui_element[GUI_EL_SW_SHOWSCAN].state = SW_OFF;
+			if(processedView)	gui_element[GUI_EL_SW_PROCESSEDVIEW].state = SW_ON;
+			else				gui_element[GUI_EL_SW_PROCESSEDVIEW].state = SW_OFF;
 
 			gui_element[GUI_EL_AREA_MAP].state = MAP_ACTIVE;
 
@@ -501,6 +534,7 @@ portTASK_FUNCTION( vGUITask, pvParameters )
 
 			gui_drawSW(&gui_element[GUI_EL_SW_STARTMAPPING]);
 			gui_drawSW(&gui_element[GUI_EL_SW_SHOWSCAN]);
+			gui_drawSW(&gui_element[GUI_EL_SW_PROCESSEDVIEW]);
 			gui_drawBTN(&gui_element[GUI_EL_BTN_CLEARMAP]);
 
 			timer_drawMap = 0;

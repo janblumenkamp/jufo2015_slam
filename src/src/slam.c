@@ -52,12 +52,12 @@ portTASK_FUNCTION( vSLAMTask, pvParameters ) {
 			slam_processMovement(&slam);
 			int best = 0;
 			best = slam_monteCarloSearch(&slam, 50, 10, 600);
-			slam_map_update(&slam, 7, 350);
+			slam_map_update(&slam, 3, 300);
 			printf("time: %i, quality: %i, pos x: %i, pos y: %i, psi: %i\n", (int)(systemTick - timer_slam), best, (int)slam.robot_pos.coord.x, (int)slam.robot_pos.coord.y, (int)slam.robot_pos.psi);
 		}
 		else
 		{
-			slam_map_update(&slam, 100, 350);
+			slam_map_update(&slam, 100, 300);
 			motor.speed_l_to = 0;
 			motor.speed_r_to = 0;
 		}
@@ -96,6 +96,44 @@ void slam_LCD_DispMap(int16_t x0, int16_t y0, slam_t *slam)
 		{
 			mapval = slam->map.px[x][y][slam->robot_pos.coord.z];
 			LCD_WriteData(0xffff - RGB565CONVERT(mapval, mapval, mapval));
+		}
+	}
+
+	Set_Cs;
+}
+/////////////////////////////////////////////////////////////////
+/// \brief slam_LCD_DispMapProcessed
+///		Displays the slam map (processed)
+/// \param x0
+///		X start coordinate
+/// \param y0
+///		Y start coordinate
+/// \param slam
+///		slam container structure
+
+void slam_LCD_DispMapProcessed(int16_t x0, int16_t y0, slam_t *slam)
+{
+	LCD_SetArea(x0,
+				y0,
+				x0 + (MAP_SIZE_X_MM / MAP_RESOLUTION_MM) - 1,
+				y0 + (MAP_SIZE_Y_MM / MAP_RESOLUTION_MM) - 1);
+
+	LCD_WriteCommand(CMD_WR_MEMSTART);
+
+	Clr_Cs;
+
+	for (int16_t y = (MAP_SIZE_Y_MM / MAP_RESOLUTION_MM) - 1; y >= 0; y--)
+	{
+		for (int16_t x = 0; x < (MAP_SIZE_X_MM / MAP_RESOLUTION_MM); x++)
+		{
+			if(slam->map.px[x][y][slam->robot_pos.coord.z] > 120 && slam->map.px[x][y][slam->robot_pos.coord.z] != 127)
+			{
+				LCD_WriteData(0);
+			}
+			else
+			{
+				LCD_WriteData(0xffff);
+			}
 		}
 	}
 
