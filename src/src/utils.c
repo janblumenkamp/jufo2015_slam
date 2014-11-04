@@ -72,7 +72,7 @@ void vUSART2_Init( void ) {
 
 	// Use defaults (except baud rate).
 	USART_StructInit( &USART_InitStructure );
-	USART_InitStructure.USART_BaudRate = 115200;
+	USART_InitStructure.USART_BaudRate = 460800;
 	USART_Init( USART2, &USART_InitStructure );
 	USART_Cmd( USART2, ENABLE );
 

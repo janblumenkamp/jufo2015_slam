@@ -499,6 +499,20 @@ signed int puts(const char *pStr)
 	return fputs(pStr, stdout);
 }
 
+/**
+ * @brief  Outputs a string with defined length on stdout.
+ *
+ * @param pStr  String to output.
+ * @param len	lenght of string
+ */
+
+void puts_l(const char *pStr, u_int32_t len)
+{
+	for(u_int32_t i = 0; i < len; i++)
+	{
+		fputc((char) pStr[i], stdout);
+	}
+}
 
 /**
  * @brief  Implementation of fputc using the DBGU as the standard output. Required

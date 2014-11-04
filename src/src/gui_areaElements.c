@@ -153,7 +153,7 @@ void gui_drawAREAmap(GUI_ELEMENT *element)
 				 element->y + (MAP_SIZE_Y_MM - slam.robot_pos.coord.y) / MAP_RESOLUTION_MM - 10 * cosf((110 + slam.robot_pos.psi) * (M_PI / 180)),
 				 LCD_COLOR_RED);
 
-		for(uint8_t i = 0; i <= MAP_SIZE_X_MM/200; i ++)
+		for(uint8_t i = 0; i <= MAP_SIZE_X_MM/200; i ++) //Scale
 		{
 			LCD_Line(element->x + 1 + (i * 20),
 					 element->y + element->heigth,

@@ -26,6 +26,8 @@ slam_t slam; //slam container structure
 mot_t motor; //Motor information (encoder etc.)
 
 ///////SLAM Task
+
+
 portTASK_FUNCTION( vSLAMTask, pvParameters ) {
 	portTickType xLastWakeTime;
 
@@ -51,7 +53,7 @@ portTASK_FUNCTION( vSLAMTask, pvParameters ) {
 			comm_readMotorData(&motor);
 			slam_processMovement(&slam);
 			int best = 0;
-			best = slam_monteCarloSearch(&slam, 50, 10, 600);
+			best = slam_monteCarloSearch(&slam, 50, 10, 1000);
 			slam_map_update(&slam, 3, 300);
 			printf("time: %i, quality: %i, pos x: %i, pos y: %i, psi: %i\n", (int)(systemTick - timer_slam), best, (int)slam.robot_pos.coord.x, (int)slam.robot_pos.coord.y, (int)slam.robot_pos.psi);
 		}

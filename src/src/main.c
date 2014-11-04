@@ -93,12 +93,12 @@ int main( void )
 
 	STM_EVAL_LEDOn(LED3);*/
 
-	printf("\r\n\n\n\n\n\n\n\n");
+	/*printf("\r\n\n\n\n\n\n\n\n");
 	printf("–––––––––––––––––––––––\r\n");
 	printf("| FreeRTOS v8.0.0 RC2 |\r\n");
 	printf("–––––––––––––––––––––––\r\n");
 	printf("Jugend Forscht 2015 v1.0\r\n");
-	vDebugPrintResetType();
+	vDebugPrintResetType();*/
 
 	// Tasks get started here...
 	xTaskCreate( vTimeTask, "TIME", configMINIMAL_STACK_SIZE,

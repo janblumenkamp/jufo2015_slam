@@ -267,7 +267,7 @@ int slam_distanceScanToMap(slam_t *slam, slam_position_t *position)
 	s = sinf((LASERSCAN_OFFSET + position->psi) * M_PI / 180);
 	// Translate and rotate scan to robot position
 	// and compute the distance
-	for (i = 0; i < LASERSCAN_POINTS; i += 4)
+	for (i = 0; i < LASERSCAN_POINTS; i += 10)
 	{
 		if(slam->sensordata.xv11->dist_polar[i] != XV11_VAR_NODATA)
 		{

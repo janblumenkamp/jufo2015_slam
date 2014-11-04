@@ -521,10 +521,10 @@ portTASK_FUNCTION( vGUITask, pvParameters )
 			// //Map_Scale
 
 			gui_element[GUI_EL_AREA_MAP].state = GUI_EL_INTOUCHABLE;
-			if(mapping)		gui_element[GUI_EL_SW_STARTMAPPING].state = SW_ON;
-			else			gui_element[GUI_EL_SW_STARTMAPPING].state = SW_OFF;
-			if(show_scan)	gui_element[GUI_EL_SW_SHOWSCAN].state = SW_ON;
-			else			gui_element[GUI_EL_SW_SHOWSCAN].state = SW_OFF;
+			if(mapping)			gui_element[GUI_EL_SW_STARTMAPPING].state = SW_ON;
+			else				gui_element[GUI_EL_SW_STARTMAPPING].state = SW_OFF;
+			if(show_scan)		gui_element[GUI_EL_SW_SHOWSCAN].state = SW_ON;
+			else				gui_element[GUI_EL_SW_SHOWSCAN].state = SW_OFF;
 			if(processedView)	gui_element[GUI_EL_SW_PROCESSEDVIEW].state = SW_ON;
 			else				gui_element[GUI_EL_SW_PROCESSEDVIEW].state = SW_OFF;
 
