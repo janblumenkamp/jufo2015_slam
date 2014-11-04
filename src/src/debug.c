@@ -70,71 +70,24 @@ portTASK_FUNCTION( vDebugTask, pvParameters ) {
 	#endif
 
 
-	for(;;) {
-
+	for(;;)
+	{
 		pcui_sendMap(&slam);
 		vTaskDelayUntil( &xLastWakeTime, ( 1000 / portTICK_RATE_MS ) );
-
-		/*if ( USART_GetFlagStatus( USART2, USART_FLAG_RXNE ) ) {
-			ch = USART_ReceiveData( USART2 );
-			// Handle Debug Console Commands Here.
-			printf( "%i ", (int)ch);
-
-		 switch ( ch ) {
-
-			// Alphabetical list of commands the console debugger responds to.
-
-			case 'm':
-				printf( "Mems dump Stopped.\r\n");
-				vSetMemsDump( false );
-				break;
-			case 'M':
-				printf( "Mems dump Started.\r\n");
-				vSetMemsDump( true );
-				break;
-
-			case 'a':
-				printf( "AtoD dump Stopped.\r\n");
-				//vSetAtoDDump( FALSE );
-				break;
-			case 'A':
-				printf( "AtoD dump Started.\r\n");
-				//vSetAtoDDump( TRUE );
-				break;
-
-			case 'l':
-				printf( "Loop Count Stopped.\r\n");
-				//vSetCntLoops( FALSE );
-				break;
-			case 'L':
-				printf( "Loop Count Started.\r\n");
-				//vSetCntLoops( TRUE );
-				break;
-
-			// Print out how much stack space remains on each task stack.
-			case 's':*/
-				/*printf( "Remaining space on Task Stack:\r\n" );
-				uxHighWaterMark = uxTaskGetStackHighWaterMark( hDebugTask );
-				printf( "Debug\t%d\r\n", uxHighWaterMark);
-				uxHighWaterMark = uxTaskGetStackHighWaterMark( hTimeTask );
-				printf( "Time\t%d\r\n", uxHighWaterMark);
-				uxHighWaterMark = uxTaskGetStackHighWaterMark( hMemsTask );
-				printf( "LCD\t%d\r\n", uxHighWaterMark);*/
-		/*		break;
-
-			// Add general test code here...
-			case 't':
-				break;
-
-			default:
-				break;
-			}
-		}*/
-
-		//taskYIELD();
 	}
 }
 
+void USART2_IRQHandler(void) //PCUI Receive...
+{
+	// check if the USART1 receive interrupt flag was set
+	if( USART_GetITStatus(USART2, USART_IT_RXNE) )
+	{
+		STM_EVAL_LEDToggle(LED5);
+		char data = USART2->DR;
+		data *= 2;
+		//Process...
+	}
+}
 
 //////////////////////////////////////////////////////////////////////////////
 /// \brief pcui_sendMsg

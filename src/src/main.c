@@ -86,19 +86,19 @@ int main( void )
 	vUSART2_Init();
 	xv11_init();
 
-	STM_EVAL_LEDInit(LED3);
-	STM_EVAL_LEDInit(LED4);
-	/*STM_EVAL_LEDInit(LED5);
-	STM_EVAL_LEDInit(LED6);
-
-	STM_EVAL_LEDOn(LED3);*/
-
-	/*printf("\r\n\n\n\n\n\n\n\n");
+	printf("\r\n\n\n\n\n\n\n\n");
 	printf("–––––––––––––––––––––––\r\n");
 	printf("| FreeRTOS v8.0.0 RC2 |\r\n");
 	printf("–––––––––––––––––––––––\r\n");
 	printf("Jugend Forscht 2015 v1.0\r\n");
-	vDebugPrintResetType();*/
+	vDebugPrintResetType();
+
+
+	/* Initialize Leds mounted on STM32F4-Discovery board */
+	STM_EVAL_LEDInit(LED3); STM_EVAL_LEDOff(LED3);
+	STM_EVAL_LEDInit(LED4); STM_EVAL_LEDOff(LED4);
+	STM_EVAL_LEDInit(LED5); STM_EVAL_LEDOff(LED5);
+	STM_EVAL_LEDInit(LED6); STM_EVAL_LEDOff(LED4);
 
 	// Tasks get started here...
 	xTaskCreate( vTimeTask, "TIME", configMINIMAL_STACK_SIZE,
@@ -134,6 +134,8 @@ portTASK_FUNCTION( vTimeTask, pvParameters ) {
 
 	for(;;)
 	{
+		STM_EVAL_LEDToggle(LED3);
+
 		ub_touch_handler_50ms();
 
 		// Once per second, copy the number of idle ticks and then
