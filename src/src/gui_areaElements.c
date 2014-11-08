@@ -86,6 +86,8 @@ u16 statusbar_readMessageColor(int8_t index)
 
 void gui_drawAREAstatusbar(GUI_ELEMENT *element)
 {
+	gui_clearAREA(element);
+
 	LCD_Line(element->x,element->y + element->heigth, element->x + element->length, element->y + element->heigth, LCD_COLOR_BLACK);
 
 	if(element->state == STAT_DROPPED)
@@ -98,7 +100,7 @@ void gui_drawAREAstatusbar(GUI_ELEMENT *element)
 
 	UB_Font_DrawPString(element->x + 100, element->y + STAT_BATTERY_BORDER, statusbar_readMessage(1), &pArial_16, LCD_COLOR_BLACK, statusbar_readMessageColor(1));
 
-	u8 batt_percent = battery.percent;
+	int8_t batt_percent = battery.percent;
 	if(batt_percent > 100)
 		batt_percent = 100;
 	if(batt_percent < 0)
@@ -123,12 +125,6 @@ void gui_drawAREAstatusbar(GUI_ELEMENT *element)
 				  element->y + STAT_BATTERY_BORDER + 14 - 3,
 				  batt_color_border, 0);
 
-	LCD_Rectangle(element->x + STAT_BATTERY_BORDER + 1, //Batterie Füllung Hintergrund
-				  element->y + STAT_BATTERY_BORDER + 1,
-				  element->x + STAT_BATTERY_BORDER + 34,
-				  element->y + STAT_BATTERY_BORDER + 14 - 1,
-				  LCD_COLOR_WHITE, 1);
-
 	LCD_Rectangle(element->x + STAT_BATTERY_BORDER + 1, //Batterie Füllung
 				  element->y + STAT_BATTERY_BORDER + 1,
 				  element->x + STAT_BATTERY_BORDER + (34 * batt_percent / 100), //1..34
@@ -137,9 +133,18 @@ void gui_drawAREAstatusbar(GUI_ELEMENT *element)
 
 	char buffer[5];
 	ltoa(buffer, batt_percent);
-	buffer[3] = '%';
+	if(batt_percent >= 100)
+	{
+		buffer[3] = '%';
+		buffer[4] = 0;
+	}
+	else
+	{
+		buffer[2] = '%';
+		buffer[3] = 0;
+	}
 
-	UB_Font_DrawPString(element->x + STAT_BATTERY_BORDER + 40,
+	UB_Font_DrawPString(element->x + STAT_BATTERY_BORDER + 44,
 						element->y + STAT_BATTERY_BORDER,
 						buffer, &pArial_16, LCD_COLOR_BLACK, LCD_COLOR_WHITE);
 }
