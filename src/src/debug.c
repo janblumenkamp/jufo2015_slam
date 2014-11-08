@@ -31,8 +31,6 @@
 ///		["STA"]: Status (1 char). Bidirectional.
 ///					- start/stop
 ///	[Data]: [Lenght] chars
-///
-///
 
 
 #include <stdarg.h>
@@ -72,7 +70,7 @@ portTASK_FUNCTION( vDebugTask, pvParameters ) {
 
 	for(;;)
 	{
-		pcui_sendMap(&slam);
+		//pcui_sendMap(&slam);
 		vTaskDelayUntil( &xLastWakeTime, ( 1000 / portTICK_RATE_MS ) );
 	}
 }

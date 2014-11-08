@@ -112,6 +112,8 @@ int main( void )
 	xTaskCreate( vDebugTask, "DEBUG", configMINIMAL_STACK_SIZE*2,
 			NULL, mainGUI_TASK_PRIORITY, &hDebugTask );
 
+	LCD_ResetDevice(); //Reset display here again? Otherwise not working - only a workaround! Still worked at last commit...
+
 	vTaskStartScheduler(); // This should never return.
 
     // Will only get here if there was insufficient memory to create

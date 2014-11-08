@@ -11,6 +11,8 @@
 #include "main.h"
 #include "comm.h"
 #include "comm_api.h"
+#include "navigation_api.h"
+#include "navigation.h"
 
 #include "gui.h"
 #include "slam.h"
@@ -36,6 +38,8 @@ portTASK_FUNCTION( vSLAMTask, pvParameters ) {
 	#endif
 
 	xLastWakeTime = xTaskGetTickCount();
+
+	nav_initWaypointStack();
 
 	motor.driver_standby = 0;
 

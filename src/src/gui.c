@@ -25,6 +25,8 @@
 #include "gui_graphics.h"
 #include "gui_areaElements.h"
 #include "slam.h"
+#include "navigation_api.h"
+#include "navigation.h"
 
 GUI_ELEMENT gui_element[GUI_ELEMENTS_CNT]; //GUI Elements structure
 
@@ -46,6 +48,8 @@ void gui_el_event_mbtn_map(ELEMENT_EVENT *event);
 void gui_el_event_sw_startMapping(ELEMENT_EVENT *event);
 void gui_el_event_sw_showScan(ELEMENT_EVENT *event);
 void gui_el_event_sw_processedview(ELEMENT_EVENT *event);
+void gui_el_event_btn_clearMap(ELEMENT_EVENT *event);
+void gui_el_event_btn_setWp(ELEMENT_EVENT *event);
 void gui_el_event_mbtn_view(ELEMENT_EVENT *event);
 void gui_el_event_mbtn_settings(ELEMENT_EVENT *event);
 void gui_el_event_sw_lidar(ELEMENT_EVENT *event);
@@ -70,8 +74,9 @@ void gui_el_pages_putInvisible(void)
 	gui_element[GUI_EL_SW_PROCESSEDVIEW].state = GUI_EL_INVISIBLE;
 	gui_element[GUI_EL_AREA_MAP].state = GUI_EL_INVISIBLE;
 	gui_element[GUI_EL_BTN_CLEARMAP].state = GUI_EL_INVISIBLE;
+	gui_element[GUI_EL_BTN_SETWP].state = GUI_EL_INVISIBLE;
 
-	//View
+	//Info
 
 	//Settings
 	gui_element[GUI_EL_SW_LIDAR].state = GUI_EL_INVISIBLE;
@@ -217,6 +222,30 @@ void gui_el_event_btn_clearMap(ELEMENT_EVENT *event)
 			for(u16 y = 0; y < (MAP_SIZE_Y_MM/MAP_RESOLUTION_MM); y++)
 				for(u16 x = 0; x < (MAP_SIZE_X_MM / MAP_RESOLUTION_MM); x ++)
 					slam.map.px[x][y][z] = 127;
+
+		nav_initWaypointStack(); //clear waypoint list
+		nextWp = NULL;
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////
+/// \brief gui_el_event_btn_setWp
+/// \param event
+
+void gui_el_event_btn_setWp(ELEMENT_EVENT *event)
+{
+	if(event->released)
+	{
+		if(setWaypoints)
+		{
+			gui_element[GUI_EL_BTN_SETWP].state = BTN_NOT_ACTIVE;
+			setWaypoints = 0;
+		}
+		else
+		{
+			gui_element[GUI_EL_BTN_SETWP].state = BTN_ACTIVE;
+			setWaypoints = 1;
+		}
 	}
 }
 
@@ -234,8 +263,20 @@ void gui_el_event_area_map(ELEMENT_EVENT *event)
 	}
 	else if(event->clicked)
 	{
-		slam.robot_pos.coord.x = (Touch_Data.pos.xp - gui_element[GUI_EL_AREA_MAP].x) * MAP_RESOLUTION_MM;
-		slam.robot_pos.coord.y = MAP_SIZE_Y_MM - (Touch_Data.pos.yp - gui_element[GUI_EL_AREA_MAP].y) * MAP_RESOLUTION_MM;
+		if(setWaypoints)
+		{
+			nav_waypoint_t wp;
+
+			wp.x = (Touch_Data.pos.xp - gui_element[GUI_EL_AREA_MAP].x) * MAP_RESOLUTION_MM;
+			wp.y = MAP_SIZE_Y_MM - (Touch_Data.pos.yp - gui_element[GUI_EL_AREA_MAP].y) * MAP_RESOLUTION_MM;
+
+			nav_attachWaypoint(&wp);
+		}
+		else
+		{
+			slam.robot_pos.coord.x = (Touch_Data.pos.xp - gui_element[GUI_EL_AREA_MAP].x) * MAP_RESOLUTION_MM;
+			slam.robot_pos.coord.y = MAP_SIZE_Y_MM - (Touch_Data.pos.yp - gui_element[GUI_EL_AREA_MAP].y) * MAP_RESOLUTION_MM;
+		}
 	}
 
 	//printf("new robot position x: %i, y: %i, psi: %i\n", slam.robot_pos.coord.x, slam.robot_pos.coord.y, slam.robot_pos.psi);
@@ -365,6 +406,7 @@ void gui_init(void)
 		gui_element[GUI_EL_SW_PROCESSEDVIEW].id = EL_ID_SW;
 		//gui_element[GUI_EL_SLI_MAP_SCALE].id = EL_ID_SLI;
 		gui_element[GUI_EL_BTN_CLEARMAP].id = EL_ID_BTN;
+		gui_element[GUI_EL_BTN_SETWP].id = EL_ID_BTN;
 	gui_element[GUI_EL_MBTN_VIEW].id = EL_ID_MBTN;
 	gui_element[GUI_EL_MBTN_SETTINGS].id = EL_ID_MBTN;
 		gui_element[GUI_EL_BTN_CALTOUCH].id = EL_ID_BTN;
@@ -415,6 +457,12 @@ void gui_init(void)
 		gui_element[GUI_EL_BTN_CLEARMAP].x = PAGE_GRID_DIST;
 		gui_element[GUI_EL_BTN_CLEARMAP].y = gui_element[GUI_EL_SW_PROCESSEDVIEW].y + gui_element[GUI_EL_SW_PROCESSEDVIEW].heigth + PAGE_GRID_DIST;
 		gui_element[GUI_EL_BTN_CLEARMAP].state = GUI_EL_INVISIBLE;
+
+		gui_element[GUI_EL_BTN_SETWP].label = (char *)"Set waypoints";
+		gui_element[GUI_EL_BTN_SETWP].action = &gui_el_event_btn_setWp;
+		gui_element[GUI_EL_BTN_SETWP].x = PAGE_GRID_DIST;
+		gui_element[GUI_EL_BTN_SETWP].y = gui_element[GUI_EL_BTN_CLEARMAP].y + gui_element[GUI_EL_BTN_CLEARMAP].heigth + PAGE_GRID_DIST;
+		gui_element[GUI_EL_BTN_SETWP].state = GUI_EL_INVISIBLE;
 
 		gui_element[GUI_EL_AREA_MAP].x = gui_element[GUI_EL_SW_STARTMAPPING].x + gui_element[GUI_EL_SW_STARTMAPPING].length + PAGE_GRID_DIST;
 		gui_element[GUI_EL_AREA_MAP].y = gui_element[GUI_EL_SW_STARTMAPPING].y;
@@ -468,6 +516,7 @@ void gui_init(void)
 }
 
 u8 mapping = 0; //Is the robot running and mapping or is it waiting for the start?
+u8 setWaypoints = 0; //Is it currently allowed to set the waypoints in the map or can you set the robot position?
 u8 processedView = 0;//Processed or raw view of the map?
 
 portTASK_FUNCTION( vGUITask, pvParameters )
@@ -518,7 +567,7 @@ portTASK_FUNCTION( vGUITask, pvParameters )
 			//SW Startmapping
 			//SW Show scan
 			//BTN Clear map
-			// //Map_Scale
+			//BTN Set waypoint
 
 			gui_element[GUI_EL_AREA_MAP].state = GUI_EL_INTOUCHABLE;
 			if(mapping)			gui_element[GUI_EL_SW_STARTMAPPING].state = SW_ON;
@@ -532,10 +581,14 @@ portTASK_FUNCTION( vGUITask, pvParameters )
 
 			gui_element[GUI_EL_BTN_CLEARMAP].state = BTN_NOT_ACTIVE;
 
+			if(setWaypoints)	gui_element[GUI_EL_BTN_SETWP].state = BTN_ACTIVE;
+			else				gui_element[GUI_EL_BTN_SETWP].state = BTN_NOT_ACTIVE;
+
 			gui_drawSW(&gui_element[GUI_EL_SW_STARTMAPPING]);
 			gui_drawSW(&gui_element[GUI_EL_SW_SHOWSCAN]);
 			gui_drawSW(&gui_element[GUI_EL_SW_PROCESSEDVIEW]);
 			gui_drawBTN(&gui_element[GUI_EL_BTN_CLEARMAP]);
+			gui_drawBTN(&gui_element[GUI_EL_BTN_SETWP]);
 
 			timer_drawMap = 0;
 

@@ -17,6 +17,8 @@
 #include "slam.h"
 #include "main.h"
 #include "math.h"
+#include "navigation_api.h"
+#include "navigation.h"
 
 //Stack of the statusbar history
 GUI_ELEMENT_STAT_STACK stat_stack;
@@ -189,6 +191,38 @@ void gui_drawAREAmap(GUI_ELEMENT *element)
 					//LCD_PutPixel(xv11.dist_cartesian[i].x + DISP_HOR_RESOLUTION/2, xv11.dist_cartesian[i].y + DISP_VER_RESOLUTION/2, LCD_COLOR_BRIGHTRED);
 				}*/
 			}
+		}
+
+		nav_waypoint_t *ptrWp = nav_wpStart;
+		while(ptrWp != NULL) //Draw waypoint networw
+		{
+			int16_t line_x1, line_y1, line_x2, line_y2;
+
+			line_x2 = element->x + (ptrWp->x / MAP_RESOLUTION_MM);
+			line_y2 = element->y + ((MAP_SIZE_Y_MM - ptrWp->y) / MAP_RESOLUTION_MM);
+
+			if(ptrWp->previous != NULL)
+			{
+				line_x1 = element->x + (ptrWp->previous->x / MAP_RESOLUTION_MM);
+				line_y1 = element->y + ((MAP_SIZE_Y_MM - ptrWp->previous->y) / MAP_RESOLUTION_MM);
+
+				LCD_Line(line_x1, line_y1,
+						 line_x2, line_y2, LCD_COLOR_BRIGHTBLUE);
+			}
+
+			LCD_Circle(line_x2, line_y2,
+					   2, LCD_COLOR_BRIGHTRED, 0);
+
+			ptrWp = ptrWp->next;
+		}
+
+		if(nextWp != NULL) //Goal defined
+		{
+			LCD_Line(element->x + (slam.robot_pos.coord.x / MAP_RESOLUTION_MM),
+					 element->y + ((MAP_SIZE_Y_MM - slam.robot_pos.coord.y) / MAP_RESOLUTION_MM),
+					 element->x + (nextWp->x / MAP_RESOLUTION_MM),
+					 element->y + ((MAP_SIZE_Y_MM - nextWp->y) / MAP_RESOLUTION_MM),
+					 LCD_COLOR_BRIGHTYELLOW);
 		}
 
 		LCD_SetClipRgn(0, 0, GetMaxX(), GetMaxY());

@@ -73,7 +73,7 @@ void vUSART2_Init( void ) {
 	/* Now the USART_InitStruct is used to define the
 	 * properties of USART2
 	 */
-	USART_InitStruct.USART_BaudRate = 460800;				// The baudrate is set to the value we passed into this init function
+	USART_InitStruct.USART_BaudRate = 115200;//460800;				// The baudrate is set to the value we passed into this init function
 	USART_InitStruct.USART_WordLength = USART_WordLength_8b;// we want the data frame size to be 8 bits (standard)
 	USART_InitStruct.USART_StopBits = USART_StopBits_1;		// we want 1 stop bit (standard)
 	USART_InitStruct.USART_Parity = USART_Parity_No;		// we don't want a parity bit (standard)

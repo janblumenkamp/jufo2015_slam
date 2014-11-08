@@ -44,6 +44,7 @@
 #define GUI_H
 
 extern u8 mapping; //Is the robot running and mapping or is it waiting for the start?
+extern u8 setWaypoints;
 extern u8 processedView;
 ///////////////////////////////////////////////////
 /// \brief The GUI_ELEMENTS enum
@@ -62,6 +63,7 @@ enum GUI_ELEMENTS {
 		//GUI_EL_SLI_MAP_SCALE, //Scale of the map on the display
 		GUI_EL_SW_PROCESSEDVIEW, //Processed or raw view of the map?
 		GUI_EL_BTN_CLEARMAP, //Delete the map
+		GUI_EL_BTN_SETWP, //Setting new waypoints by touching map?
 		GUI_EL_AREA_MAP, //Area of the map
 
 	GUI_EL_MBTN_VIEW, //Menubutton View/Info (Sensordata/debugging)
