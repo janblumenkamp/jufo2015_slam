@@ -54,12 +54,20 @@ portTASK_FUNCTION( vSLAMTask, pvParameters ) {
 
 		if(mapping)
 		{
+			int16_t slam_updateVar = fabsf(motor.speed_l_is - motor.speed_r_is); //Difference of speed. The smaller, the straighter drives the robot.
+
 			comm_readMotorData(&motor);
 			slam_processMovement(&slam);
 			int best = 0;
 			best = slam_monteCarloSearch(&slam, 50, 10, 1000);
-			slam_map_update(&slam, 3, 300);
-			printf("time: %i, quality: %i, pos x: %i, pos y: %i, psi: %i\n", (int)(systemTick - timer_slam), best, (int)slam.robot_pos.coord.x, (int)slam.robot_pos.coord.y, (int)slam.robot_pos.psi);
+
+			if(slam_updateVar < 8)
+				slam_updateVar = 8 - slam_updateVar;
+			else
+				slam_updateVar = 1;
+
+			slam_map_update(&slam, slam_updateVar, 300);
+			//printf("time: %i, quality: %i, pos x: %i, pos y: %i, psi: %i\n", (int)(systemTick - timer_slam), best, (int)slam.robot_pos.coord.x, (int)slam.robot_pos.coord.y, (int)slam.robot_pos.psi);
 		}
 		else
 		{

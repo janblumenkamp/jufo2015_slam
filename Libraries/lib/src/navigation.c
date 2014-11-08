@@ -29,7 +29,7 @@ void navigate(slam_t *slam, mot_t *mot)
 
 		nextWp_dist = sqrtf((wp_dx * wp_dx) + (wp_dy * wp_dy)); //Calculate dist to waypoint
 
-		if(nextWp_dist < 100) //10cm close to the waypoint
+		if(nextWp_dist < 200) //20cm close to the waypoint
 		{
 			nextWp = nextWp->next; //Switch to next waypoint
 		}
@@ -43,22 +43,22 @@ void navigate(slam_t *slam, mot_t *mot)
 			if(psi > 180)
 				psi = 360 - psi;
 
-			int16_t speedvar_l = 50 + (psi * 3);
-			int16_t speedvar_r = 50 - (psi * 3);
+			int16_t speedvar_l = 20 - (psi/3);
+			int16_t speedvar_r = 20 + (psi/3);
 
-			if(speedvar_l < -50)
-				speedvar_l = -50;
-			else if(speedvar_l > 50)
-				speedvar_l = 50;
-			if(speedvar_r < -50)
-				speedvar_r = -50;
-			else if(speedvar_r > 50)
-				speedvar_r = 50;
+			if(speedvar_l < -20)
+				speedvar_l = -20;
+			else if(speedvar_l > 20)
+				speedvar_l = 20;
+			if(speedvar_r < -20)
+				speedvar_r = -20;
+			else if(speedvar_r > 20)
+				speedvar_r = 20;
 
 			mot->speed_l_to = speedvar_l;
 			mot->speed_r_to = speedvar_r;
 
-			printf("Abweichung wp: %i\n", (int)psi);
+			//printf("Abweichung wp: %i, speedL: %i, speedR: %i\n\r", (int)psi, speedvar_l, speedvar_r);
 		}
 	}
 }

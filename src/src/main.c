@@ -148,7 +148,6 @@ portTASK_FUNCTION( vTimeTask, pvParameters ) {
 		{
 			comm_readBattData(&battery); //Reads battery data from base
 
-			printf("Battery mV: %i; %i%%", battery.mV, battery.percent);
 			i = 0;
             u64IdleTicks = u64IdleTicksCnt;
 			u64IdleTicksCnt = 0;

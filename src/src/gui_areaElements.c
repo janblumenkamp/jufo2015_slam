@@ -138,11 +138,17 @@ void gui_drawAREAstatusbar(GUI_ELEMENT *element)
 		buffer[3] = '%';
 		buffer[4] = 0;
 	}
-	else
+	else if(batt_percent >= 10)
 	{
 		buffer[2] = '%';
 		buffer[3] = 0;
 	}
+	else
+	{
+		buffer[1] = '%';
+		buffer[2] = 0;
+	}
+
 
 	UB_Font_DrawPString(element->x + STAT_BATTERY_BORDER + 44,
 						element->y + STAT_BATTERY_BORDER,
