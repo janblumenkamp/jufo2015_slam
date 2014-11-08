@@ -95,6 +95,7 @@ uint16_t UB_Font_DrawPChar(uint16_t x, uint16_t y, uint8_t ascii, UB_pFont *font
 void UB_Font_DrawPString(uint16_t x, uint16_t y,char *ptr, UB_pFont *font, uint16_t vg, uint16_t bg);
 uint16_t UB_Font_DrawPChar32(uint16_t x, uint16_t y, uint8_t ascii, UB_pFont32 *font, uint16_t vg, uint16_t bg);
 void UB_Font_DrawPString32(uint16_t x, uint16_t y,char *ptr, UB_pFont32 *font, uint16_t vg, uint16_t bg);
+void ltoa(char * buf, long val);
 
 //--------------------------------------------------------------
 #endif // __STM32F4_UB_FONT_H

@@ -518,6 +518,7 @@ void gui_init(void)
 u8 mapping = 0; //Is the robot running and mapping or is it waiting for the start?
 u8 setWaypoints = 0; //Is it currently allowed to set the waypoints in the map or can you set the robot position?
 u8 processedView = 0;//Processed or raw view of the map?
+int8_t batt_percent_old = 0xff; //Last battery percent state (refresh statusbar if changing)
 
 portTASK_FUNCTION( vGUITask, pvParameters )
 {
@@ -538,6 +539,12 @@ portTASK_FUNCTION( vGUITask, pvParameters )
 		if(STM_EVAL_PBGetState(BUTTON_USER))
 		{
 			menu = MENU_CALIBRATION;
+		}
+
+		if(batt_percent_old != battery.percent) //Redraw statusbar if battery value changes
+		{
+			gui_drawAREAstatusbar(&gui_element[GUI_EL_AREA_STATUSBAR_TOP]);
+			batt_percent_old = battery.percent;
 		}
 
 		switch (menu) {

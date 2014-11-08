@@ -11,6 +11,11 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
+typedef struct { //Battery information
+	int16_t mV;
+	int8_t percent;
+} battstate_t;
+
 extern xTaskHandle hTimeTask;
 extern xTaskHandle hDRIVETask;
 extern xTaskHandle hSLAMTask;
@@ -22,6 +27,8 @@ typedef uint16_t u_int16_t;
 typedef uint32_t u_int32_t;
 
 extern u_int32_t systemTick;
+
+extern battstate_t battery;
 
 #define TRUE 1
 #define FALSE 0

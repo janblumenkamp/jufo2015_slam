@@ -19,4 +19,7 @@ extern u_int8_t comm_readMotorData(mot_t *mot);
 //sets motor speed
 extern u_int8_t comm_setMotor(mot_t *mot);
 
+//reads out battery data
+extern u_int8_t comm_readBattData(battstate_t *batt);
+
 #endif // COMM_H

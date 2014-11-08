@@ -75,6 +75,8 @@ u_int32_t u64IdleTicks=0;    // Value of u64IdleTicksCnt is copied once per sec.
 u_int32_t u64IdleTicksCnt=0; // Counts when the OS has no task to execute.
 u_int16_t u16PWM1=0;
 
+battstate_t battery;
+
 // ============================================================================
 int main( void )
 {
@@ -141,9 +143,13 @@ portTASK_FUNCTION( vTimeTask, pvParameters ) {
 		ub_touch_handler_50ms();
 
 		// Once per second, copy the number of idle ticks and then
-        // reset the rolling counter.
-        if ( ++i == 20 ) {
-            i = 0;
+		// reset the rolling counter. Read out battery.
+		if ( ++i == 20 )
+		{
+			comm_readBattData(&battery); //Reads battery data from base
+
+			printf("Battery mV: %i; %i%%", battery.mV, battery.percent);
+			i = 0;
             u64IdleTicks = u64IdleTicksCnt;
 			u64IdleTicksCnt = 0;
         }

@@ -18,7 +18,7 @@
 //--------------------------------------------------------------
 #include "stm32_ub_font.h"
 #include "SSD1963.h"
-
+#include "math.h"
 
 
 //--------------------------------------------------------------
@@ -267,4 +267,29 @@ void UB_Font_DrawPString32(uint16_t x, uint16_t y,char *ptr, UB_pFont32 *font, u
 		pos+=width;
 		ptr++;
 	}
+}
+
+//--------------------------------------------------------------------
+void ltoa(char * buf, long val)
+{
+	unsigned char i;
+	char neg = 0;
+	char tmp_buf[21];
+
+	if(val<0) {
+		val = -val;
+		neg = 1;
+	}
+
+	for(i = 0; val > 0; val /= 10)
+		tmp_buf[i++] = (val % 10) + '0';
+
+	if(i == 0)
+		tmp_buf[i++] = '0';
+
+	if(neg)
+		tmp_buf[i++] = '-';
+
+	while(i>0)
+		*buf++ = tmp_buf[--i];
 }

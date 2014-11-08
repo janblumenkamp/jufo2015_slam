@@ -98,30 +98,50 @@ void gui_drawAREAstatusbar(GUI_ELEMENT *element)
 
 	UB_Font_DrawPString(element->x + 100, element->y + STAT_BATTERY_BORDER, statusbar_readMessage(1), &pArial_16, LCD_COLOR_BLACK, statusbar_readMessageColor(1));
 
-	u8 batt_percent = 60;
-	u16 batt_color = LCD_COLOR_BRIGHTGREEN;
-	if(batt_percent <= 20)
-		batt_color = LCD_COLOR_BRIGHTYELLOW;
-	if(batt_percent <= 5)
-		batt_color = LCD_COLOR_BRIGHTRED;
+	u8 batt_percent = battery.percent;
+	if(batt_percent > 100)
+		batt_percent = 100;
+	if(batt_percent < 0)
+		batt_percent = 0;
+
+	u16 batt_color_fill = LCD_COLOR_BRIGHTGREEN;
+	u16 batt_color_border = LCD_COLOR_BLACK;
+	if(batt_percent <= 25)
+		batt_color_fill = LCD_COLOR_BRIGHTYELLOW;
+	if(batt_percent <= 10)
+		batt_color_fill = batt_color_border = LCD_COLOR_BRIGHTRED;
 
 	LCD_Rectangle(element->x + STAT_BATTERY_BORDER, //Batterie Körper
 				  element->y + STAT_BATTERY_BORDER,
 				  element->x + STAT_BATTERY_BORDER + 35,
 				  element->y + STAT_BATTERY_BORDER + 14,
-				  LCD_COLOR_BLACK, 0);
+				  batt_color_border, 0);
 
 	LCD_Rectangle(element->x + STAT_BATTERY_BORDER + 35 + 1,
 				  element->y + STAT_BATTERY_BORDER + 14 - 11,
 				  element->x + STAT_BATTERY_BORDER + 35 + 2,
 				  element->y + STAT_BATTERY_BORDER + 14 - 3,
-				  LCD_COLOR_BLACK, 0);
+				  batt_color_border, 0);
+
+	LCD_Rectangle(element->x + STAT_BATTERY_BORDER + 1, //Batterie Füllung Hintergrund
+				  element->y + STAT_BATTERY_BORDER + 1,
+				  element->x + STAT_BATTERY_BORDER + 34,
+				  element->y + STAT_BATTERY_BORDER + 14 - 1,
+				  LCD_COLOR_WHITE, 1);
 
 	LCD_Rectangle(element->x + STAT_BATTERY_BORDER + 1, //Batterie Füllung
 				  element->y + STAT_BATTERY_BORDER + 1,
-				  element->x + STAT_BATTERY_BORDER + (34 / (100 / batt_percent)),
+				  element->x + STAT_BATTERY_BORDER + (34 * batt_percent / 100), //1..34
 				  element->y + STAT_BATTERY_BORDER + 14 - 1,
-				  batt_color, 1);
+				  batt_color_fill, 1);
+
+	char buffer[5];
+	ltoa(buffer, batt_percent);
+	buffer[3] = '%';
+
+	UB_Font_DrawPString(element->x + STAT_BATTERY_BORDER + 40,
+						element->y + STAT_BATTERY_BORDER,
+						buffer, &pArial_16, LCD_COLOR_BLACK, LCD_COLOR_WHITE);
 }
 
 /////////////////////////////////////////////////////////////////
