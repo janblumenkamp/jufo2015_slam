@@ -115,8 +115,7 @@ void nav_attachWaypoint(nav_waypoint_t *wp)
 		nav_wpStart = nav_stackFindEmptyElement(); //Reserve first element from stack
 		if(nav_wpStart == NULL) //couldn’t reserve element. Stack too small?
 		{
-			//fprintf(stderr,"Kein Speicherplatz vorhanden für start\n");
-			//return;
+			fprintf(&debug,"Couldn’t reserve start waypoint from stack!\n");
 		}
 		else
 		{
@@ -132,8 +131,7 @@ void nav_attachWaypoint(nav_waypoint_t *wp)
 		nav_wpEnd->next = nav_stackFindEmptyElement(); //Reserve element from stack for the element after end
 		if(nav_wpEnd->next == NULL)
 		{
-			//fprintf(stderr,"Kein Speicherplatz für letztes Element\n");
-			//return;
+			fprintf(&debug,"Couldn’t reserve waypoint from stack!\n");
 		}
 		else
 		{
@@ -205,7 +203,7 @@ void nav_deleteWaypoint(int16_t id)
 	}
 	else
 	{
-		//printf("Es sind keine Daten zum löschen vorhanden!!!\n");
+		fprintf(&debug,"No waypoints available to delete!\n");
 		//To do: Debug...
 	}
 }
@@ -239,7 +237,7 @@ nav_waypoint_t *nav_getWaypoint(int16_t id)
 	}
 	else
 	{
-		//printf("Es sind keine Daten zum löschen vorhanden!!!\n");
+		fprintf(&debug,"No waypoints available to return!\n");
 		//To do: Debug...
 	}
 

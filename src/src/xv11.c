@@ -7,8 +7,15 @@
 #include "utils.h"
 #include "printf.h"
 #include "stm32_ub_pwm_tim3.h"
+#include "slam.h"
+#include "slamdefs.h"
+
+#include "FreeRTOS.h"
+#include "semphr.h"
 
 volatile XV11_t xv11;
+
+volatile slam_coordinates_t scanStart_lastRobPos;
 
 //Private Function Prototypes
 
@@ -129,6 +136,8 @@ void USART1_IRQHandler(void)
 	// check if the USART1 receive interrupt flag was set
 	if( USART_GetITStatus(USART1, USART_IT_RXNE) )
 	{
+		static BaseType_t slamTaskWoken; //Synchronisation between SLAM Task and Lidar ISR
+
 		static u_int8_t sm = INIT_SEARCHSTART;
 		static u_int16_t xv11_dist_index = 0;
 		static float xv11_speedreg_i = XV11_SPEED_IREG_INIT; //I-Regulator (speed)
@@ -190,6 +199,13 @@ void USART1_IRQHandler(void)
 				{
 					xv11_dist_index = (xv11_package[INDEX] - 0xA0) * 4;
 					xv11.speed = (xv11_package[SPEED_LSB] | (xv11_package[SPEED_MSB] << 8)) / 64.0;
+
+					slamTaskWoken = pdFALSE;
+					if(xv11_dist_index == 0) //Synchronization var with the slam algorithm
+					{
+						xSemaphoreGiveFromISR( lidarSync, &slamTaskWoken );
+						fprintf(&debug, "Semaphore sent!\n");
+					}
 
 					for(u8 i = 0; i < 4; i++)
 					{

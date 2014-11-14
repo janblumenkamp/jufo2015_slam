@@ -6,6 +6,10 @@
 #include <stdarg.h>
 #include "main.h"
 
+extern FILE slamUI;
+extern FILE debug;
+extern FILE debugOS;
+
 extern signed int vsnprintf(char *pStr, size_t length, const char *pFormat, va_list ap);
 
 extern signed int snprintf(char *pString, size_t length, const char *pFormat, ...);
@@ -24,7 +28,7 @@ extern signed int sprintf(char *pStr, const char *pFormat, ...);
 
 extern signed int puts(const char *pStr);
 
-extern void puts_l(const char *pStr, u_int32_t len);
+extern void puts_l(FILE *pStream, const char *pStr, u_int32_t len);
 
 extern signed int fputc(signed int c, FILE *pStream);
 

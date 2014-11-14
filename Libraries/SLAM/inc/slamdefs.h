@@ -10,7 +10,6 @@
 #define SLAMDEFS_H
 
 #include "main.h"
-#include "xv11.h"
 
 //Sensordata
 #define WHEELDIST	260 //Distance between two wheels
@@ -19,7 +18,7 @@
 
 #define LASERSCAN_ANGLE		360 //degree
 #define LASERSCAN_POINTS	360 //Amount of scans per LASERSCAN_ANGLE ->_POINTS/_ANGLE = (HAS TO BE A NATURAL NUMBER!!!!) resolution of Laserscanner
-#define LASERSCAN_OFFSET	270 //Orientation of the lidar on the robot (where is the scan showing to the front?)
+#define LASERSCAN_NODATA	0 //Var of Laserscan if no data available
 
 #define ODOMETER_TICKS_PER_REV	360 //Odometer ticks per revolution
 #define WHEEL_RADIUS			26 //In mm
@@ -55,10 +54,10 @@ typedef struct {
 	int32_t *odo_r; //Odometer right
 	int32_t odo_l_old; //Last odometer value after call of slam_processMovement
 	int32_t odo_r_old;	//"
-	XV11_t *xv11; //Pointer to xv11 struct
+	int16_t lidar[LASERSCAN_POINTS]; //Laserscan data
 } slam_sensordata_t;
 
-typedef u8 slam_map_pixel_t;
+typedef u_int8_t slam_map_pixel_t;
 
 //Raw Map
 typedef struct {
@@ -76,8 +75,8 @@ int slam_monteCarloSearch(slam_t *slam, int sigma_xy, int sigma_psi, int stop);
 
 //Initialization of all relevant SLAM information
 extern void slam_init(slam_t *slam,
-					  int16_t rob_x_start, int16_t rob_y_start, u8 rob_z_start, int16_t rob_psi_start,
-					  XV11_t *xv11, int32_t *odo_l, int32_t *odo_r);
+					  int16_t rob_x_start, int16_t rob_y_start, u_int8_t rob_z_start, int16_t rob_psi_start,
+					  int32_t *odo_l, int32_t *odo_r);
 
 //Bases on ts_map_laser_ray
 extern void slam_laserRayToMap(slam_t *slam,
@@ -89,5 +88,7 @@ extern void slam_map_update(slam_t *slam, int quality, int hole_width);
 extern int slam_distanceScanToMap(slam_t *slam, slam_position_t *position);
 
 extern void slam_processMovement(slam_t *slam);
+
+extern void slam_line(slam_t *slam, int x0, int y0, int x1, int y1, int xh, int yh, uint8_t updateRate);
 
 #endif

@@ -4,7 +4,6 @@
 #include "stm32f4xx.h"
 #include "stm32f4_discovery.h"
 #include "stm32f4xx_conf.h"
-#include "printf.h"
 #include "xv11.h"
 #include "main.h"
 #include "comm.h"
@@ -14,14 +13,15 @@
 #include "gui.h"
 
 #include <stdlib.h>
+#include <stdio.h>
+
+FILE debug;
 
 ///////SLAM Task
 portTASK_FUNCTION( vDRIVETask, pvParameters ) {
 	portTickType xLastWakeTime;
 
-	#if(configDEBUG_MESSAGES == 1)
-		printf("xTask DRIVE started.\r\n");
-	#endif
+	fprintf(&debug, "xTask DRIVE started.\r\n");
 
 	xLastWakeTime = xTaskGetTickCount();
 

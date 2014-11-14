@@ -408,9 +408,7 @@ BaseType_t xListWasEmpty;
 	/* Just to avoid compiler warnings. */
 	( void ) pvParameters;
 
-	#if(configDEBUG_MESSAGES == 1)
-		printf("System xTask ’Timer’ started.\r\n");
-	#endif
+	fprintf(&debugOS, "System xTask ’Timer’ started.\r\n");
 
 	for( ;; )
 	{

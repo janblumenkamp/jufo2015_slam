@@ -24,6 +24,14 @@ void PrintChar(char c)
 // Retarget printf to USART2
 #define USART2_USE
 
+#define SENDDATA_SLAMUI 1 //Activate SLAMUI Debugging?
+#define SENDDATA_DEBUG 1 //Activate Debugging?
+#define SENDDATA_OS 1 //Activate Debugging OS?
+
+FILE slamUI;
+FILE debug;
+FILE debugOS;
+
 /** Required for proper compilation. */
 struct _reent r = {0, (FILE *) 0, (FILE *) 1, (FILE *) 0};
 //struct _reent *_impure_ptr = &r;
@@ -506,11 +514,11 @@ signed int puts(const char *pStr)
  * @param len	lenght of string
  */
 
-void puts_l(const char *pStr, u_int32_t len)
+void puts_l(FILE *pStream, const char *pStr, u_int32_t len)
 {
 	for(u_int32_t i = 0; i < len; i++)
 	{
-		fputc((char) pStr[i], stdout);
+		fputc((char) pStr[i], pStream);
 	}
 }
 
@@ -526,18 +534,22 @@ void puts_l(const char *pStr, u_int32_t len)
 signed int fputc(signed int c, FILE *pStream)
 {
 #ifdef USART2_USE
-	if ((pStream == stdout) || (pStream == stderr)) {
+	if ((pStream == stdout) || (pStream == stderr) ||
+			((pStream == &slamUI) && SENDDATA_SLAMUI) ||
+			((pStream == &debug) && SENDDATA_DEBUG) ||
+			((pStream == &debugOS) && SENDDATA_OS)) {
 
-			//PrintChar(c);
+			//PrintChar(c);*/
 			USART_SendData(USART2, (uint8_t) c);
-			/* Loop until the end of transmission */
+			// Loop until the end of transmission
 			while (USART_GetFlagStatus(USART2, USART_FLAG_TC) == RESET);
-			return c;
+
 		}
-		else {
+		/*else {
 
 			return EOF;
-		}
+		}*/
+	return c;
 #else
 	if ((pStream == stdout) || (pStream == stderr)) {
 

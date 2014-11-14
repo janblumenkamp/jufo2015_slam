@@ -9,6 +9,7 @@
 #include "slam.h"
 #include "math.h"
 #include "stdlib.h"
+#include "gui.h"
 
 nav_waypoint_t *nextWp; //Next waypoint in list (goal)
 float nextWp_dist = 0; //Dist to next waypoint

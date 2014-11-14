@@ -11,7 +11,9 @@
 #include "comm.h"
 #include "comm_api.h"
 #include "slam.h"
+#include "slamdefs.h"
 #include "printf.h"
+#include "math.h"
 
 static volatile uint8_t comm_reg[COMM_REGSIZE];
 
@@ -47,8 +49,11 @@ u_int8_t comm_readMotorData(mot_t *mot)
 		//succeed!
 		mot->enc_l = (speedmsg_receive[3] << 24) | (speedmsg_receive[2] << 16) | (speedmsg_receive[1] << 8) | speedmsg_receive[0];
 		mot->enc_r = (speedmsg_receive[7] << 24) | (speedmsg_receive[6] << 16) | (speedmsg_receive[5] << 8) | speedmsg_receive[4];
-		mot->speed_l_is = (int8_t) speedmsg_receive[8];
+		mot->speed_l_is = (int8_t) speedmsg_receive[8]; //Ticks/40ms (25Hz)
 		mot->speed_r_is = (int8_t) speedmsg_receive[9];
+
+		mot->speed_l_ms = ((((2 * WHEELRADIUS * M_PI) / TICKSPERREV) * mot->speed_l_is) / 4);
+		mot->speed_r_ms = ((((2 * WHEELRADIUS * M_PI) / TICKSPERREV) * mot->speed_r_is) / 4);
 
 		return 1;
 	}

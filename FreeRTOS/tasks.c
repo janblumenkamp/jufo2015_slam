@@ -643,16 +643,12 @@ TCB_t * pxNewTCB;
 		}
 		taskEXIT_CRITICAL();
 
-		#if(configDEBUG_MESSAGES == 1)
-		printf("xTask %s successfully created!\n", pcName);
-		#endif
+		fprintf(&debugOS, "xTask %s successfully created!\n", pcName);
 
 	}
 	else
 	{
-		#if(configDEBUG_MESSAGES == 1)
-		printf("xTask %s due to allocation problems not created!\r\n", pcName);
-		#endif
+		fprintf(&debugOS, "xTask %s due to allocation problems not created!\r\n", pcName);
 
 		xReturn = errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY;
 		traceTASK_CREATE_FAILED();
@@ -1485,9 +1481,7 @@ BaseType_t xReturn;
 		xSchedulerRunning = pdTRUE;
 		xTickCount = ( TickType_t ) 0U;
 
-		#if(configDEBUG_MESSAGES == 1)
-			printf("xScheduler running, System ready!\r\n");
-		#endif
+		fprintf(&debugOS, "xScheduler running, System ready!\r\n");
 
 		/* If configGENERATE_RUN_TIME_STATS is defined then the following
 		macro must be defined to configure the timer/counter used to generate
@@ -2534,9 +2528,7 @@ static portTASK_FUNCTION( prvIdleTask, pvParameters )
 	/* Stop warnings. */
 	( void ) pvParameters;
 
-	#if(configDEBUG_MESSAGES == 1)
-		printf("System xTask ’Idle’ started.\r\n");
-	#endif
+	fprintf(&debugOS, "System xTask ’Idle’ started.\r\n");
 
 	for( ;; )
 	{

@@ -226,12 +226,12 @@ ErrorStatus UB_Touch_Calibrate(void)
 					Touch_Kal.wert.xp3=xp3;
 					Touch_Kal.wert.yp3=yp3;
 
-					printf("xp1: %i\n", xp1);
-					printf("yp1: %i\n", yp1);
-					printf("xp2: %i\n", xp2);
-					printf("yp2: %i\n", yp2);
-					printf("xp3: %i\n", xp3);
-					printf("yp3: %i\n", yp3);
+					fprintf(&debug, "xp1: %i\n\r", xp1);
+					fprintf(&debug, "yp1: %i\n\r", yp1);
+					fprintf(&debug, "xp2: %i\n\r", xp2);
+					fprintf(&debug, "yp2: %i\n\r", yp2);
+					fprintf(&debug, "xp3: %i\n\r", xp3);
+					fprintf(&debug, "yp3: %i\n\r", yp3);
 
 					P_Touch_KalSetData();
 					//P_Touch_KalDrawPoint(KAL_OK);

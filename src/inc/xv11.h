@@ -1,7 +1,11 @@
+#include "stm32f4xx.h"
+#include "slam.h"
+#include "slamdefs.h"
+#include "main.h"
+
 #ifndef XV11_H
 #define XV11_H
 
-#include "stm32f4xx.h"
 
 //Source: http://eliaselectronics.com/stm32f4-tutorials/stm32f4-usart-tutorial/
 
