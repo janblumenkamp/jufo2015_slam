@@ -643,12 +643,12 @@ TCB_t * pxNewTCB;
 		}
 		taskEXIT_CRITICAL();
 
-		fprintf(&debugOS, "xTask %s successfully created!\n", pcName);
+		foutf(&debugOS, "xTask %s successfully created!\n", pcName);
 
 	}
 	else
 	{
-		fprintf(&debugOS, "xTask %s due to allocation problems not created!\r\n", pcName);
+		foutf(&debugOS, "xTask %s due to allocation problems not created!\r\n", pcName);
 
 		xReturn = errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY;
 		traceTASK_CREATE_FAILED();
@@ -1481,7 +1481,7 @@ BaseType_t xReturn;
 		xSchedulerRunning = pdTRUE;
 		xTickCount = ( TickType_t ) 0U;
 
-		fprintf(&debugOS, "xScheduler running, System ready!\r\n");
+		foutf(&debugOS, "xScheduler running, System ready!\r\n");
 
 		/* If configGENERATE_RUN_TIME_STATS is defined then the following
 		macro must be defined to configure the timer/counter used to generate
@@ -2528,7 +2528,7 @@ static portTASK_FUNCTION( prvIdleTask, pvParameters )
 	/* Stop warnings. */
 	( void ) pvParameters;
 
-	fprintf(&debugOS, "System xTask ’Idle’ started.\r\n");
+	foutf(&debugOS, "System xTask ’Idle’ started.\r\n");
 
 	for( ;; )
 	{
@@ -3362,7 +3362,7 @@ TCB_t *pxTCB;
 									break;
 				}
 
-				sprintf( pcWriteBuffer, "%s\t\t%c\t%u\t%u\t%u\r\n", pxTaskStatusArray[ x ].pcTaskName, cStatus, ( unsigned int ) pxTaskStatusArray[ x ].uxCurrentPriority, ( unsigned int ) pxTaskStatusArray[ x ].usStackHighWaterMark, ( unsigned int ) pxTaskStatusArray[ x ].xTaskNumber );
+				soutf( pcWriteBuffer, "%s\t\t%c\t%u\t%u\t%u\r\n", pxTaskStatusArray[ x ].pcTaskName, cStatus, ( unsigned int ) pxTaskStatusArray[ x ].uxCurrentPriority, ( unsigned int ) pxTaskStatusArray[ x ].usStackHighWaterMark, ( unsigned int ) pxTaskStatusArray[ x ].xTaskNumber );
 				pcWriteBuffer += strlen( pcWriteBuffer );
 			}
 
@@ -3444,13 +3444,13 @@ TCB_t *pxTCB;
 					{
 						#ifdef portLU_PRINTF_SPECIFIER_REQUIRED
 						{
-							sprintf( pcWriteBuffer, "%s\t\t%lu\t\t%lu%%\r\n", pxTaskStatusArray[ x ].pcTaskName, pxTaskStatusArray[ x ].ulRunTimeCounter, ulStatsAsPercentage );
+							soutf( pcWriteBuffer, "%s\t\t%lu\t\t%lu%%\r\n", pxTaskStatusArray[ x ].pcTaskName, pxTaskStatusArray[ x ].ulRunTimeCounter, ulStatsAsPercentage );
 						}
 						#else
 						{
 							/* sizeof( int ) == sizeof( long ) so a smaller
 							printf() library can be used. */
-							sprintf( pcWriteBuffer, "%s\t\t%u\t\t%u%%\r\n", pxTaskStatusArray[ x ].pcTaskName, ( unsigned int ) pxTaskStatusArray[ x ].ulRunTimeCounter, ( unsigned int ) ulStatsAsPercentage );
+							soutf( pcWriteBuffer, "%s\t\t%u\t\t%u%%\r\n", pxTaskStatusArray[ x ].pcTaskName, ( unsigned int ) pxTaskStatusArray[ x ].ulRunTimeCounter, ( unsigned int ) ulStatsAsPercentage );
 						}
 						#endif
 					}
@@ -3460,13 +3460,13 @@ TCB_t *pxTCB;
 						consumed less than 1% of the total run time. */
 						#ifdef portLU_PRINTF_SPECIFIER_REQUIRED
 						{
-							sprintf( pcWriteBuffer, "%s\t\t%lu\t\t<1%%\r\n", pxTaskStatusArray[ x ].pcTaskName, pxTaskStatusArray[ x ].ulRunTimeCounter );
+							soutf( pcWriteBuffer, "%s\t\t%lu\t\t<1%%\r\n", pxTaskStatusArray[ x ].pcTaskName, pxTaskStatusArray[ x ].ulRunTimeCounter );
 						}
 						#else
 						{
 							/* sizeof( int ) == sizeof( long ) so a smaller
 							printf() library can be used. */
-							sprintf( pcWriteBuffer, "%s\t\t%u\t\t<1%%\r\n", pxTaskStatusArray[ x ].pcTaskName, ( unsigned int ) pxTaskStatusArray[ x ].ulRunTimeCounter );
+							soutf( pcWriteBuffer, "%s\t\t%u\t\t<1%%\r\n", pxTaskStatusArray[ x ].pcTaskName, ( unsigned int ) pxTaskStatusArray[ x ].ulRunTimeCounter );
 						}
 						#endif
 					}

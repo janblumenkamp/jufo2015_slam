@@ -65,18 +65,19 @@ portTASK_FUNCTION( vDebugTask, pvParameters ) {
 	xLastWakeTime = xTaskGetTickCount();
 
 	#if(configDEBUG_MESSAGES == 1)
-		fprintf(&debugOS, "xTask DEBUG started.\r\n");
+		foutf(&debugOS, (const char *)"xTask DEBUG started.\r\n");
 	#endif
 
 
 	for(;;)
 	{
-		/*printf("Lidar front: %i\n", xv11.dist_polar[90]);
-		printf("Lidar right: %i\n", xv11.dist_polar[0]);
-		printf("Lidar back: %i\n", xv11.dist_polar[270]);
-		printf("Lidar left: %i\n\n", xv11.dist_polar[180]);*/
+		/*outf("Lidar front: %i\n", xv11.dist_polar[90]);
+		outf("Lidar right: %i\n", xv11.dist_polar[0]);
+		outf("Lidar back: %i\n", xv11.dist_polar[270]);
+		outf("Lidar left: %i\n\n", xv11.dist_polar[180]);*/
 
-		//printf("Rob pos x: %i, pos y: %i, psi: %i\n", (int)slam.robot_pos.coord.x, (int)slam.robot_pos.coord.y, (int)slam.robot_pos.psi);
+		int i = 10;
+		foutf(&debug, "TESTAUSGABE. int i = %i\n\r", i);
 
 		//pcui_sendMap(&slam);
 		vTaskDelayUntil( &xLastWakeTime, ( 1000 / portTICK_RATE_MS ) );
@@ -123,11 +124,11 @@ void pcui_sendMsg(char *id, u_int32_t length, char *msg)
 	chk[2] = (char) ((checksum & 0x00ff0000) >> 16);
 	chk[3] = (char) ((checksum & 0xff000000) >> 24);
 
-	puts_l(&slamUI, "PCUI_MSG", 8); //Startseq
-	puts_l(&slamUI, len, 2);
-	puts_l(&slamUI, chk, 4);
-	puts_l(&slamUI, id, 3);
-	puts_l(&slamUI, msg, length);
+	out_puts_l(&slamUI, "PCUI_MSG", 8); //Startseq
+	out_puts_l(&slamUI, len, 2);
+	out_puts_l(&slamUI, chk, 4);
+	out_puts_l(&slamUI, id, 3);
+	out_puts_l(&slamUI, msg, length);
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -186,28 +187,28 @@ void pcui_sendMap(slam_t *slam)
 void vDebugPrintResetType( void ) {
 
 	if ( PWR_GetFlagStatus( PWR_FLAG_WU ) )
-		fprintf(&debugOS, "PWR: Wake Up flag\r\n" );
+		foutf(&debugOS, "PWR: Wake Up flag\r\n" );
 	if ( PWR_GetFlagStatus( PWR_FLAG_SB ) )
-		fprintf(&debugOS, "PWR: StandBy flag.\r\n" );
+		foutf(&debugOS, "PWR: StandBy flag.\r\n" );
 	if ( PWR_GetFlagStatus( PWR_FLAG_PVDO ) )
-		fprintf(&debugOS, "PWR: PVD Output.\r\n" );
+		foutf(&debugOS, "PWR: PVD Output.\r\n" );
 	if ( PWR_GetFlagStatus( PWR_FLAG_BRR ) )
-		fprintf(&debugOS, "PWR: Backup regulator ready flag.\r\n" );
+		foutf(&debugOS, "PWR: Backup regulator ready flag.\r\n" );
 	if ( PWR_GetFlagStatus( PWR_FLAG_REGRDY ) )
-		fprintf(&debugOS, "PWR: Main regulator ready flag.\r\n" );
+		foutf(&debugOS, "PWR: Main regulator ready flag.\r\n" );
 
 	if ( RCC_GetFlagStatus( RCC_FLAG_BORRST ) )
-		fprintf(&debugOS, "RCC: POR/PDR or BOR reset\r\n" );
+		foutf(&debugOS, "RCC: POR/PDR or BOR reset\r\n" );
 	if ( RCC_GetFlagStatus( RCC_FLAG_PINRST ) )
-		fprintf(&debugOS, "RCC: Pin reset.\r\n" );
+		foutf(&debugOS, "RCC: Pin reset.\r\n" );
 	if ( RCC_GetFlagStatus( RCC_FLAG_PORRST ) )
-		fprintf(&debugOS, "RCC: POR/PDR reset.\r\n" );
+		foutf(&debugOS, "RCC: POR/PDR reset.\r\n" );
 	if ( RCC_GetFlagStatus( RCC_FLAG_SFTRST ) )
-		fprintf(&debugOS, "RCC: Software reset.\r\n" );
+		foutf(&debugOS, "RCC: Software reset.\r\n" );
 	if ( RCC_GetFlagStatus( RCC_FLAG_IWDGRST ) )
-		fprintf(&debugOS, "RCC: Independent Watchdog reset.\r\n" );
+		foutf(&debugOS, "RCC: Independent Watchdog reset.\r\n" );
 	if ( RCC_GetFlagStatus( RCC_FLAG_WWDGRST ) )
-		fprintf(&debugOS, "RCC: Window Watchdog reset.\r\n" );
+		foutf(&debugOS, "RCC: Window Watchdog reset.\r\n" );
 	if ( RCC_GetFlagStatus( RCC_FLAG_LPWRRST ) )
-		fprintf(&debugOS, "RCC: Low Power reset.\r\n" );
+		foutf(&debugOS, "RCC: Low Power reset.\r\n" );
 }

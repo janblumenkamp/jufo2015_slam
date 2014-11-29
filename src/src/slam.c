@@ -38,7 +38,7 @@ SemaphoreHandle_t lidarSync; //Snychronize SLAM Task with Lidar!
 portTASK_FUNCTION( vSLAMTask, pvParameters ) {
 //	portTickType xLastWakeTime;
 
-	fprintf(&debugOS, "xTask SLAM started.\r\n");
+	foutf(&debugOS, "xTask SLAM started.\r\n");
 
 	//xLastWakeTime = xTaskGetTickCount();
 	lidarSync = xSemaphoreCreateBinary();
@@ -57,7 +57,7 @@ portTASK_FUNCTION( vSLAMTask, pvParameters ) {
 	{
 		if(xSemaphoreTake(lidarSync, 0xffff) == pdTRUE)
 		{
-			fprintf(&debug, "Semaphore taken after %ims\n\r", (int)(systemTick - timer_slam));
+			foutf(&debug, "Semaphore taken after %ims\n\r", (int)(systemTick - timer_slam));
 
 			timer_slam = systemTick; //Timer for executing task with max. 5Hz
 
@@ -86,7 +86,7 @@ portTASK_FUNCTION( vSLAMTask, pvParameters ) {
 
 				slam_map_update(&slam, slam_updateVar, 200);
 
-				//fprintf(debug, "time: %i, quality: %i, pos x: %i, pos y: %i, psi: %i\n\r", (int)(systemTick - timer_slam), best, (int)slam.robot_pos.coord.x, (int)slam.robot_pos.coord.y, (int)slam.robot_pos.psi);
+				//foutf(debug, "time: %i, quality: %i, pos x: %i, pos y: %i, psi: %i\n\r", (int)(systemTick - timer_slam), best, (int)slam.robot_pos.coord.x, (int)slam.robot_pos.coord.y, (int)slam.robot_pos.psi);
 			}
 			else
 			{

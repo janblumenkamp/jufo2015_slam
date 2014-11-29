@@ -279,7 +279,7 @@ void gui_el_event_area_map(ELEMENT_EVENT *event)
 		}
 	}
 
-	//fprintf(debug, "new robot position x: %i, y: %i, psi: %i\n", slam.robot_pos.coord.x, slam.robot_pos.coord.y, slam.robot_pos.psi);
+	//foutf(debug, "new robot position x: %i, y: %i, psi: %i\n", slam.robot_pos.coord.x, slam.robot_pos.coord.y, slam.robot_pos.psi);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -524,9 +524,7 @@ portTASK_FUNCTION( vGUITask, pvParameters )
 {
 	portTickType xLastWakeTime;
 
-	#if(configDEBUG_MESSAGES == 1)
-		fprintf(&debugOS, "xTask GUI started.\r\n");
-	#endif
+	foutf(&debugOS, "xTask GUI started.\r\n");
 
 	xLastWakeTime = xTaskGetTickCount();
 

@@ -204,7 +204,7 @@ void USART1_IRQHandler(void)
 					if(xv11_dist_index == 0) //Synchronization var with the slam algorithm
 					{
 						xSemaphoreGiveFromISR( lidarSync, &slamTaskWoken );
-						fprintf(&debug, "Semaphore sent!\n");
+						foutf(&debug, "Semaphore sent!\n");
 					}
 
 					for(u8 i = 0; i < 4; i++)

@@ -4,7 +4,6 @@
  *           sprintf() and so on. This reduces the memory footprint of the
  *           binary when using those methods, compared to the libc implementation.
  ********************************************************************************/
-#include <stdio.h>
 #include "stm32f4xx_conf.h"
 #include <stdarg.h>
 #include "printf.h"
@@ -12,28 +11,43 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
-void PrintChar(char c)
+
+stream_t slamUI;
+stream_t debug;
+stream_t debugOS;
+stream_t error;
+
+int8_t usart2_put(char c)
 {
-	/* Send a char like:
-	   while(Transfer not completed);
-	   Transmit a char;
-	*/
+	USART_SendData(USART2, (uint8_t) c);
+	// Loop until the end of transmission
+	while (USART_GetFlagStatus(USART2, USART_FLAG_TC) == RESET);
+
+	return c;
 }
-// Maximum string size allocation (in bytes)
-#define MAX_STRING_SIZE     512
-// Retarget printf to USART2
-#define USART2_USE
 
-#define SENDDATA_SLAMUI 1 //Activate SLAMUI Debugging?
-#define SENDDATA_DEBUG 1 //Activate Debugging?
-#define SENDDATA_OS 1 //Activate Debugging OS?
+void out_init(void)
+{
+	slamUI.active = 1;
+	slamUI.put_c = &usart2_put;
 
-FILE slamUI;
-FILE debug;
-FILE debugOS;
+	debug.active = 1;
+	debug.put_c = &usart2_put;
+
+	debugOS.active = 1;
+	debugOS.put_c = &usart2_put;
+
+	error.active = 1;
+	error.put_c = &usart2_put;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////7
+////////////////////////////////////////////////////////////////////////////////
+/// Start of Library
 
 /** Required for proper compilation. */
-struct _reent r = {0, (FILE *) 0, (FILE *) 1, (FILE *) 0};
+//struct _reent r = {0, (FILE *) 0, (FILE *) 1, (FILE *) 0};
 //struct _reent *_impure_ptr = &r;
 
 /**
@@ -268,7 +282,7 @@ signed int PutHexa(
  *
  * @return  The number of characters written.
  */
-signed int vsnprintf(char *pStr, size_t length, const char *pFormat, va_list ap)
+signed int vsnoutf(char *pStr, size_t length, const char *pFormat, va_list ap)
 {
 	char          fill;
 	unsigned char width;
@@ -334,7 +348,7 @@ signed int vsnprintf(char *pStr, size_t length, const char *pFormat, va_list ap)
 			case 's': num = PutString(pStr, va_arg(ap, char *)); break;
 			case 'c': num = PutChar(pStr, va_arg(ap, unsigned int)); break;
 			default:
-				return EOF;
+				return -1;
 			}
 
 			pFormat++;
@@ -369,13 +383,13 @@ signed int vsnprintf(char *pStr, size_t length, const char *pFormat, va_list ap)
  *
  * @return  The number of characters written.
  */
-signed int snprintf(char *pString, size_t length, const char *pFormat, ...)
+signed int snoutf(char *pString, size_t length, const char *pFormat, ...)
 {
 	va_list    ap;
 	signed int rc;
 
 	va_start(ap, pFormat);
-	rc = vsnprintf(pString, length, pFormat, ap);
+	rc = vsnoutf(pString, length, pFormat, ap);
 	va_end(ap);
 
 	return rc;
@@ -393,9 +407,9 @@ signed int snprintf(char *pString, size_t length, const char *pFormat, ...)
  *
  * @return  The number of characters written.
  */
-signed int vsprintf(char *pString, const char *pFormat, va_list ap)
+signed int vsoutf(char *pString, const char *pFormat, va_list ap)
 {
-   return vsnprintf(pString, MAX_STRING_SIZE, pFormat, ap);
+   return vsnoutf(pString, MAX_STRING_SIZE, pFormat, ap);
 }
 
 /**
@@ -406,33 +420,22 @@ signed int vsprintf(char *pString, const char *pFormat, va_list ap)
  * @param pFormat  Format string
  * @param ap       Argument list.
  */
-signed int vfprintf(FILE *pStream, const char *pFormat, va_list ap)
+signed int vfoutf(stream_t *pStream, const char *pFormat, va_list ap)
 {
 	char pStr[MAX_STRING_SIZE];
 	char pError[] = "stdio.c: increase MAX_STRING_SIZE\n\r";
 
 	/* Write formatted string in buffer */
-	if (vsprintf(pStr, pFormat, ap) >= MAX_STRING_SIZE) {
+	if (vsoutf(pStr, pFormat, ap) >= MAX_STRING_SIZE) {
 
-		fputs(pError, stderr);
-		while (1); /* Increase MAX_STRING_SIZE */
+		out_fputs(pError, NULL);
+		return -1;
 	}
-
+	else
+	{
 	/* Display string */
-	return fputs(pStr, pStream);
-}
-
-
-/**
- * @brief  Outputs a formatted string on the DBGU stream. Format arguments are given
- *         in a va_list instance.
- *
- * @param pFormat  Format string.
- * @param ap  Argument list.
- */
-signed int vprintf(const char *pFormat, va_list ap)
-{
-	return vfprintf(stdout, pFormat, ap);
+		return out_fputs(pStr, pStream);
+	}
 }
 
 
@@ -443,39 +446,18 @@ signed int vprintf(const char *pFormat, va_list ap)
  * @param pStream  Output stream.
  * @param pFormat  Format string.
  */
-signed int fprintf(FILE *pStream, const char *pFormat, ...)
+signed int foutf(stream_t *pStream, const char *pFormat, ...)
 {
 	va_list ap;
 	signed int result;
 
-	/* Forward call to vfprintf */
+	/* Forward call to vfoutf */
 	va_start(ap, pFormat);
-	result = vfprintf(pStream, pFormat, ap);
+	result = vfoutf(pStream, pFormat, ap);
 	va_end(ap);
 
 	return result;
 }
-
-
-/**
- * @brief  Outputs a formatted string on the DBGU stream, using a variable number of
- *         arguments.
- *
- * @param  pFormat  Format string.
- */
-signed int printf(const char *pFormat, ...)
-{
-	va_list ap;
-	signed int result;
-
-	/* Forward call to vprintf */
-	va_start(ap, pFormat);
-	result = vprintf(pFormat, ap);
-	va_end(ap);
-
-	return result;
-}
-
 
 /**
  * @brief  Writes a formatted string inside another string.
@@ -483,14 +465,14 @@ signed int printf(const char *pFormat, ...)
  * @param pStr     torage string.
  * @param pFormat  Format string.
  */
-signed int sprintf(char *pStr, const char *pFormat, ...)
+signed int soutf(char *pStr, const char *pFormat, ...)
 {
 	va_list ap;
 	signed int result;
 
-	// Forward call to vsprintf
+	// Forward call to vsoutf
 	va_start(ap, pFormat);
-	result = vsprintf(pStr, pFormat, ap);
+	result = vsoutf(pStr, pFormat, ap);
 	va_end(ap);
 
 	return result;
@@ -498,79 +480,24 @@ signed int sprintf(char *pStr, const char *pFormat, ...)
 
 
 /**
- * @brief  Outputs a string on stdout.
- *
- * @param pStr  String to output.
- */
-signed int puts(const char *pStr)
-{
-	return fputs(pStr, stdout);
-}
-
-/**
- * @brief  Outputs a string with defined length on stdout.
+ * @brief  Outputs a string with defined length on given stream.
  *
  * @param pStr  String to output.
  * @param len	lenght of string
  */
 
-void puts_l(FILE *pStream, const char *pStr, u_int32_t len)
+void out_puts_l(stream_t *pStream, const char *pStr, u_int32_t len)
 {
 	for(u_int32_t i = 0; i < len; i++)
 	{
-		fputc((char) pStr[i], pStream);
+		if(pStream->put_c != NULL)
+			pStream->put_c((char) pStr[i]);
 	}
 }
 
 /**
- * @brief  Implementation of fputc using the DBGU as the standard output. Required
- *         for printf().
- *
- * @param c        Character to write.
- * @param pStream  Output stream.
- * @param The character written if successful, or -1 if the output stream is
- *        not stdout or stderr.
- */
-signed int fputc(signed int c, FILE *pStream)
-{
-#ifdef USART2_USE
-	if ((pStream == stdout) || (pStream == stderr) ||
-			((pStream == &slamUI) && SENDDATA_SLAMUI) ||
-			((pStream == &debug) && SENDDATA_DEBUG) ||
-			((pStream == &debugOS) && SENDDATA_OS)) {
-
-			//PrintChar(c);*/
-			USART_SendData(USART2, (uint8_t) c);
-			// Loop until the end of transmission
-			while (USART_GetFlagStatus(USART2, USART_FLAG_TC) == RESET);
-
-		}
-		/*else {
-
-			return EOF;
-		}*/
-	return c;
-#else
-	if ((pStream == stdout) || (pStream == stderr)) {
-
-			//PrintChar(c);
-			USART_SendData(USART1, (uint8_t) c);
-			/* Loop until the end of transmission */
-			while (USART_GetFlagStatus(USART1, USART_FLAG_TC) == RESET){}
-			return c;
-		}
-		else {
-
-			return EOF;
-		}
-#endif
-
-}
-
-
-/**
  * @brief  Implementation of fputs using the DBGU as the standard output. Required
- *         for printf().
+ *         for outf().
  *
  * @param pStr     String to write.
  * @param pStream  Output stream.
@@ -578,23 +505,46 @@ signed int fputc(signed int c, FILE *pStream)
  * @return  Number of characters written if successful, or -1 if the output
  *          stream is not stdout or stderr.
  */
-signed int fputs(const char *pStr, FILE *pStream) {
+signed int out_fputs(const char *pStr, stream_t *pStream) {
 
 	signed int num = 0;
 
 	taskENTER_CRITICAL();
-	while (*pStr != 0) {
-
-		if (fputc(*pStr, pStream) == -1) {
-
-			return -1;
+	while (*pStr != 0)
+	{
+		if(pStream->put_c != NULL)
+		{
+			if((pStream->put_c((char)*pStr) == -1))
+				return -1;
 		}
+		else
+			out_n_fputc('?');
+
 		num++;
 		pStr++;
 	}
 	taskEXIT_CRITICAL();
 
 	return num;
+}
+
+
+
+/**
+ * @brief  Called if stream pointer is NULL
+ *
+ * @param c        Character to write.
+ * @param pStream  Output stream.
+ * @param The character written if successful, or -1 if the output stream is
+ *        not stdout or stderr.
+ */
+signed int out_n_fputc(signed int c)
+{
+	USART_SendData(USART2, (uint8_t) c);
+	// Loop until the end of transmission
+	while (USART_GetFlagStatus(USART2, USART_FLAG_TC) == RESET);
+
+	return c;
 }
 
 /* --------------------------------- End Of File ------------------------------ */

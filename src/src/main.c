@@ -81,6 +81,7 @@ battstate_t battery;
 int main( void )
 {
 	//HwInit();
+	out_init();
 	LCD_ResetDevice();
 	UB_Touch_Init();
 	comm_init();
@@ -88,11 +89,11 @@ int main( void )
 	vUSART2_Init();
 	xv11_init();
 
-	fprintf(&debugOS, "\r\n\n\n\n\n\n\n\n");
-	fprintf(&debugOS, "–––––––––––––––––––––––\r\n");
-	fprintf(&debugOS, "| FreeRTOS v8.0.0 RC2 |\r\n");
-	fprintf(&debugOS, "–––––––––––––––––––––––\r\n");
-	fprintf(&debugOS, "Jugend Forscht 2015 v1.0\r\n");
+	foutf(&debugOS, "\r\n\n\n\n\n\n\n\n");
+	foutf(&debugOS, "–––––––––––––––––––––––\r\n");
+	foutf(&debugOS, "| FreeRTOS v8.0.0 RC2 |\r\n");
+	foutf(&debugOS, "–––––––––––––––––––––––\r\n");
+	foutf(&debugOS, "Jugend Forscht 2015 v1.0\r\n");
 	vDebugPrintResetType();
 
 
@@ -131,7 +132,7 @@ portTASK_FUNCTION( vTimeTask, pvParameters ) {
     uint8_t i=0;
 
 	#if(configDEBUG_MESSAGES == 1)
-		fprintf(&debugOS, "xTask TIME started.\r\n");
+		foutf(&debugOS, "xTask TIME started.\r\n");
 	#endif
 
     xLastWakeTime = xTaskGetTickCount();
@@ -173,7 +174,7 @@ void vApplicationIdleHook( void ) {
 // A required FreeRTOS function.
 // ---------------------------------------------------------------------------- 
 void vApplicationMallocFailedHook( void ) {
-	fprintf(&debugOS, "Malloc failed!!!\r\n");
+	foutf(&debugOS, "Malloc failed!!!\r\n");
 	configASSERT( 0 );  // Latch on any failure / error.
 }
 
@@ -184,7 +185,7 @@ void vApplicationStackOverflowHook(xTaskHandle pxTask, signed char *pcTaskName) 
 		configCHECK_FOR_STACK_OVERFLOW is defined to 1 or 2.  This hook
 		function is called if a stack overflow is detected. */
 
-	fprintf(&debugOS, "xTask %s: STACK OVERFLOW DETECTED!!!\r\n", pcTaskName);
+	foutf(&debugOS, "xTask %s: STACK OVERFLOW DETECTED!!!\r\n", pcTaskName);
 	taskDISABLE_INTERRUPTS();
 	for(;;);
 }
