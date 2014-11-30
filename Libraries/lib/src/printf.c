@@ -3,6 +3,10 @@
  * @brief    Implementation of several stdio.h methods, such as printf(),
  *           sprintf() and so on. This reduces the memory footprint of the
  *           binary when using those methods, compared to the libc implementation.
+ *
+ * VT100 Commands:
+ *	\e[2J //clear
+ *
  ********************************************************************************/
 #include "stm32f4xx_conf.h"
 #include <stdarg.h>
@@ -28,16 +32,46 @@ int8_t usart2_put(char c)
 
 void out_init(void)
 {
+	/*
+	 Foreground Colours
+	30	Black
+	31	Red
+	32	Green
+	33	Yellow
+	34	Blue
+	35	Magenta
+	36	Cyan
+	37	White
+
+		Background Colours
+	40	Black
+	41	Red
+	42	Green
+	43	Yellow
+	44	Blue
+	45	Magenta
+	46	Cyan
+	47	White
+	 */
+
 	slamUI.active = 1;
+	slamUI.bgcolor = 0;
+	slamUI.textcolor = 0;
 	slamUI.put_c = &usart2_put;
 
 	debug.active = 1;
+	debug.bgcolor = 42; //green
+	debug.textcolor = 30; //black
 	debug.put_c = &usart2_put;
 
 	debugOS.active = 1;
+	debugOS.bgcolor = 43; //Yellow
+	debugOS.textcolor = 30; //black
 	debugOS.put_c = &usart2_put;
 
 	error.active = 1;
+	error.bgcolor = 41; //red
+	error.textcolor = 30; //black
 	error.put_c = &usart2_put;
 }
 
@@ -423,7 +457,7 @@ signed int vsoutf(char *pString, const char *pFormat, va_list ap)
 signed int vfoutf(stream_t *pStream, const char *pFormat, va_list ap)
 {
 	char pStr[MAX_STRING_SIZE];
-	char pError[] = "stdio.c: increase MAX_STRING_SIZE\n\r";
+	char pError[] = "stdio.c: increase MAX_STRING_SIZE\n";
 
 	/* Write formatted string in buffer */
 	if (vsoutf(pStr, pFormat, ap) >= MAX_STRING_SIZE) {
@@ -488,11 +522,13 @@ signed int soutf(char *pStr, const char *pFormat, ...)
 
 void out_puts_l(stream_t *pStream, const char *pStr, u_int32_t len)
 {
+	taskENTER_CRITICAL();
 	for(u_int32_t i = 0; i < len; i++)
 	{
 		if(pStream->put_c != NULL)
 			pStream->put_c((char) pStr[i]);
 	}
+	taskEXIT_CRITICAL();
 }
 
 /**
@@ -508,6 +544,22 @@ void out_puts_l(stream_t *pStream, const char *pStr, u_int32_t len)
 signed int out_fputs(const char *pStr, stream_t *pStream) {
 
 	signed int num = 0;
+
+	char vt100[6] = "\e[30m"; //textcolor black
+
+	if(pStream->bgcolor != 0)
+	{
+		vt100[3] = pStream->bgcolor % 10 + 48; //10. 48: ASCII 0
+		vt100[2] = pStream->bgcolor / 10 + 48; //1
+		out_puts_l(pStream, vt100, 6);
+	}
+
+	if(pStream->textcolor != 0)
+	{
+		vt100[3] = pStream->textcolor % 10 + 48; //10. 48: ASCII 0
+		vt100[2] = pStream->textcolor / 10 + 48; //1
+		out_puts_l(pStream, vt100, 6);
+	}
 
 	taskENTER_CRITICAL();
 	while (*pStr != 0)

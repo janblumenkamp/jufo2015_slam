@@ -28,6 +28,7 @@
 #define MAP_SIZE_Y_MM			3000
 #define MAP_SIZE_Z_LAYERS		1		//Amount of layers of the map
 #define MAP_RESOLUTION_MM		15
+#define MAP_NAVRESOLUTION_FAC	3 //Resolution of navigation cells in MAP_RESOLUTION_MM * MAP_NAVRESOLUTION_FAC mm (on each navresolution cell there come MAP_NAVRESOLUTION_FAC^2 MAP_SIZE_X_MM / MAP_RESOLUTION_MM cells)
 
 #define MAP_VAR_MAX			255 //Overflow of map pixel
 #define MAP_VAR_MIN			0 //Underflow of map pixel
@@ -58,10 +59,12 @@ typedef struct {
 } slam_sensordata_t;
 
 typedef u_int8_t slam_map_pixel_t;
+typedef u_int8_t slam_map_navpixel_t;
 
 //Raw Map
 typedef struct {
 	slam_map_pixel_t px[MAP_SIZE_X_MM / MAP_RESOLUTION_MM][MAP_SIZE_Y_MM / MAP_RESOLUTION_MM][MAP_SIZE_Z_LAYERS];
+	slam_map_navpixel_t nav[MAP_SIZE_X_MM / (MAP_RESOLUTION_MM * MAP_NAVRESOLUTION_FAC)][MAP_SIZE_Y_MM / (MAP_RESOLUTION_MM * MAP_NAVRESOLUTION_FAC)][MAP_SIZE_Z_LAYERS];
 } slam_map_t;
 
 //Container of all SLAM information:

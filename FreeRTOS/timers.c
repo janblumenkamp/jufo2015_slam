@@ -408,7 +408,7 @@ BaseType_t xListWasEmpty;
 	/* Just to avoid compiler warnings. */
 	( void ) pvParameters;
 
-	foutf(&debugOS, "System xTask ’Timer’ started.\r\n");
+	foutf(&debugOS, "System xTask ’Timer’ started.\n");
 
 	for( ;; )
 	{

@@ -43,7 +43,7 @@
   */
 void NMI_Handler(void)
 {
-	foutf(&error, "FATAL ERROR: NMI EXCEPTION!\n\r");
+	foutf(&error, "FATAL ERROR: NMI EXCEPTION!\n");
 }
 
 /**

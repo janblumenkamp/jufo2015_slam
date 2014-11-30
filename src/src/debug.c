@@ -64,10 +64,7 @@ portTASK_FUNCTION( vDebugTask, pvParameters ) {
 
 	xLastWakeTime = xTaskGetTickCount();
 
-	#if(configDEBUG_MESSAGES == 1)
-		foutf(&debugOS, (const char *)"xTask DEBUG started.\r\n");
-	#endif
-
+	foutf(&debugOS, (const char *)"xTask DEBUG started.\r\n");
 
 	for(;;)
 	{
@@ -76,10 +73,8 @@ portTASK_FUNCTION( vDebugTask, pvParameters ) {
 		outf("Lidar back: %i\n", xv11.dist_polar[270]);
 		outf("Lidar left: %i\n\n", xv11.dist_polar[180]);*/
 
-		int i = 10;
-		foutf(&debug, "TESTAUSGABE. int i = %i\n\r", i);
-
 		//pcui_sendMap(&slam);
+
 		vTaskDelayUntil( &xLastWakeTime, ( 1000 / portTICK_RATE_MS ) );
 	}
 }

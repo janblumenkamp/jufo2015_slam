@@ -336,6 +336,8 @@ void slam_map_update(slam_t *slam, int quality, int hole_width)
 			slam_laserRayToMap(slam, x1, y1, x2, y2, xp, yp, IS_OBSTACLE, quality);
 		}
 	}
+	//for(int i = 0; i < MAP_SIZE_X_MM / (MAP_RESOLUTION_MM * 3); i++)
+	//	slam->map.nav[i][i][0] = i;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -358,7 +360,7 @@ int slam_distanceScanToMap(slam_t *slam, slam_position_t *position)
 	s = sinf((position->psi) * M_PI / 180);
 	// Translate and rotate scan to robot position
 	// and compute the distance
-	for (i = 0; i < LASERSCAN_POINTS; i += 12)
+	for (i = 0; i < LASERSCAN_POINTS; i += 10)
 	{
 		if(slam->sensordata.lidar[i] != LASERSCAN_NODATA)
 		{

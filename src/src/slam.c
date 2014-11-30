@@ -50,35 +50,30 @@ portTASK_FUNCTION( vSLAMTask, pvParameters ) {
 	comm_readMotorData(&motor); //Important as start value of slam struct .odo_[dir]_old!!
 	slam_init(&slam, 1000, 1000, 0, 90, &motor.enc_l, &motor.enc_r);
 
-	//while(xv11_state(XV11_GETSTATE) != XV11_ON);
-	uint32_t timer_slam = 0;
+	int32_t monteCarlo_time;
+
+	int16_t monteCarlo_tries = 1300; //standard value. Amount of tries in the montecarlo search. We regulate it to a maximum to keep the general time < 180ms (200ms: new laser scan).
 
 	for(;;)
 	{
-		if(xSemaphoreTake(lidarSync, 0xffff) == pdTRUE)
+		if(xSemaphoreTake(lidarSync, 0xffff) == pdTRUE) //Synchronize Lidar and SLAM integration (only process SLAM Data (Lidar, etc.) if Lidar has turned 360°)
 		{
-			foutf(&debug, "Semaphore taken after %ims\n\r", (int)(systemTick - timer_slam));
-
-			timer_slam = systemTick; //Timer for executing task with max. 5Hz
-
 			slam_processLaserscan(&slam, (XV11_t *) &xv11, (motor.speed_l_ms + motor.speed_r_ms) / 2);
 
 			//lidar_lastPosition = slam.robot_pos.coord;
 
 			if(mapping)
 			{
+				monteCarlo_time = systemTick;
+
 				comm_readMotorData(&motor);
 				int16_t slam_updateVar = abs(motor.speed_l_is - motor.speed_r_is); //Difference of speed. The smaller, the straighter drives the robot.
 
 				slam_processMovement(&slam);
 
 				int best = 0;
-				best = slam_monteCarloSearch(&slam, 100, 10, 1300);
+				best = slam_monteCarloSearch(&slam, 100, 10, monteCarlo_tries);
 
-				/*if(slam_updateVar <= 10)
-					slam_updateVar = 6 - slam_updateVar/2;
-				else
-					slam_updateVar = 1;*/
 				if(slam_updateVar < 10)
 					slam_updateVar = 10 - slam_updateVar;
 				else
@@ -86,7 +81,15 @@ portTASK_FUNCTION( vSLAMTask, pvParameters ) {
 
 				slam_map_update(&slam, slam_updateVar, 200);
 
-				//foutf(debug, "time: %i, quality: %i, pos x: %i, pos y: %i, psi: %i\n\r", (int)(systemTick - timer_slam), best, (int)slam.robot_pos.coord.x, (int)slam.robot_pos.coord.y, (int)slam.robot_pos.psi);
+				//montecarlo regulation
+				if(systemTick - monteCarlo_time < 180) //If the time nessesary in this iteration is less than 180ms, increase the montecarlo tries, otherwise decrease it (simple integral regulator)
+					monteCarlo_tries += 20;
+				else
+					monteCarlo_tries -= 60;
+
+				foutf(&debug, "MonteCarlo time needed: %i, new amounts: %i\n", systemTick - monteCarlo_time, monteCarlo_tries);
+
+				//foutf(debug, "time: %i, quality: %i, pos x: %i, pos y: %i, psi: %i\n", (int)(systemTick - timer_slam), best, (int)slam.robot_pos.coord.x, (int)slam.robot_pos.coord.y, (int)slam.robot_pos.psi);
 			}
 			else
 			{
@@ -96,10 +99,6 @@ portTASK_FUNCTION( vSLAMTask, pvParameters ) {
 			}
 		}
 		//slam_line(&slam, 10, 10, 100, 180, 10, 255);
-
-		//if((systemTick - timer_slam) < 200)
-		//	vTaskDelayUntil( &xLastWakeTime, ( (200 - (systemTick - timer_slam)) / portTICK_RATE_MS ) );
-		//vTaskDelayUntil( &xLastWakeTime, ( 5000 / portTICK_RATE_MS ) );
 	}
 }
 

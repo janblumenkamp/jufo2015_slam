@@ -131,9 +131,7 @@ portTASK_FUNCTION( vTimeTask, pvParameters ) {
     portTickType xLastWakeTime;
     uint8_t i=0;
 
-	#if(configDEBUG_MESSAGES == 1)
-		foutf(&debugOS, "xTask TIME started.\r\n");
-	#endif
+	foutf(&debugOS, "xTask TIME started.\r\n");
 
     xLastWakeTime = xTaskGetTickCount();
 

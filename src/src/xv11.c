@@ -99,11 +99,16 @@ void xv11_init(void)
 	 */
 	USART_ITConfig(USART1, USART_IT_RXNE, ENABLE); // enable the USART1 receive interrupt
 
-	NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;		 // we want to configure the USART1 interrupts
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;// this sets the priority group of the USART1 interrupts
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;		 // this sets the subpriority inside the group
-	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;			 // the USART1 interrupts are globally enabled
-	NVIC_Init(&NVIC_InitStructure);							 // the properties are passed to the NVIC_Init function which takes care of the low level stuff
+	// Configure the NVIC Preemption Priority Bits
+	// wichtig!, sonst stimmt nichts überein mit den neuen ST Libs (ab Version 3.1.0)
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
+	NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
+
+	// entspricht 11-15, 11 ist das höchst mögliche, sonst gibt es Probleme mit dem OS
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = (configMAX_SYSCALL_INTERRUPT_PRIORITY >> 4) + 1;
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_Init( &NVIC_InitStructure );
 
 	// finally this enables the complete USART1 peripheral
 	USART_Cmd(USART1, ENABLE);
@@ -136,7 +141,7 @@ void USART1_IRQHandler(void)
 	// check if the USART1 receive interrupt flag was set
 	if( USART_GetITStatus(USART1, USART_IT_RXNE) )
 	{
-		static BaseType_t slamTaskWoken; //Synchronisation between SLAM Task and Lidar ISR
+		static BaseType_t slamTaskWoken = pdFALSE; //Synchronisation between SLAM Task and Lidar ISR
 
 		static u_int8_t sm = INIT_SEARCHSTART;
 		static u_int16_t xv11_dist_index = 0;
@@ -200,12 +205,8 @@ void USART1_IRQHandler(void)
 					xv11_dist_index = (xv11_package[INDEX] - 0xA0) * 4;
 					xv11.speed = (xv11_package[SPEED_LSB] | (xv11_package[SPEED_MSB] << 8)) / 64.0;
 
-					slamTaskWoken = pdFALSE;
 					if(xv11_dist_index == 0) //Synchronization var with the slam algorithm
-					{
 						xSemaphoreGiveFromISR( lidarSync, &slamTaskWoken );
-						foutf(&debug, "Semaphore sent!\n");
-					}
 
 					for(u8 i = 0; i < 4; i++)
 					{
@@ -255,5 +256,7 @@ void USART1_IRQHandler(void)
 		default:
 			break;
 		}
+
+		portEND_SWITCHING_ISR(slamTaskWoken);
 	}
 }

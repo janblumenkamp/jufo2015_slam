@@ -648,7 +648,7 @@ TCB_t * pxNewTCB;
 	}
 	else
 	{
-		foutf(&debugOS, "xTask %s due to allocation problems not created!\r\n", pcName);
+		foutf(&debugOS, "xTask %s due to allocation problems not created!\n", pcName);
 
 		xReturn = errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY;
 		traceTASK_CREATE_FAILED();
@@ -1481,7 +1481,7 @@ BaseType_t xReturn;
 		xSchedulerRunning = pdTRUE;
 		xTickCount = ( TickType_t ) 0U;
 
-		foutf(&debugOS, "xScheduler running, System ready!\r\n");
+		foutf(&debugOS, "xScheduler running, System ready!\n");
 
 		/* If configGENERATE_RUN_TIME_STATS is defined then the following
 		macro must be defined to configure the timer/counter used to generate
@@ -2528,7 +2528,7 @@ static portTASK_FUNCTION( prvIdleTask, pvParameters )
 	/* Stop warnings. */
 	( void ) pvParameters;
 
-	foutf(&debugOS, "System xTask ’Idle’ started.\r\n");
+	foutf(&debugOS, "System xTask ’Idle’ started.\n");
 
 	for( ;; )
 	{

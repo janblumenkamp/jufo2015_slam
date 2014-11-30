@@ -59,7 +59,7 @@ void navigate(slam_t *slam, mot_t *mot)
 			mot->speed_l_to = speedvar_l;
 			mot->speed_r_to = speedvar_r;
 
-			//printf("Abweichung wp: %i, speedL: %i, speedR: %i\n\r", (int)psi, speedvar_l, speedvar_r);
+			//printf("Abweichung wp: %i, speedL: %i, speedR: %i\n", (int)psi, speedvar_l, speedvar_r);
 		}
 	}
 }

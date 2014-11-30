@@ -9,8 +9,9 @@
 #define MAX_STRING_SIZE     512
 
 typedef struct {
-	u8 index;
 	u8 active; //Stream active or not?
+	u8 textcolor; //VT100 terminal command colors
+	u8 bgcolor;
 	int8_t (*put_c)(char c); //Called if next char of given stream is processed
 } stream_t;
 
