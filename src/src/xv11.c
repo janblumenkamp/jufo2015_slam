@@ -138,11 +138,11 @@ enum XV11_PACKAGE_DATA {
 // this is the interrupt request handler (IRQ) for ALL USART1 interrupts
 void USART1_IRQHandler(void)
 {
+	static BaseType_t slamTaskWoken = pdFALSE; //Synchronisation between SLAM Task and Lidar ISR
+
 	// check if the USART1 receive interrupt flag was set
 	if( USART_GetITStatus(USART1, USART_IT_RXNE) )
 	{
-		static BaseType_t slamTaskWoken = pdFALSE; //Synchronisation between SLAM Task and Lidar ISR
-
 		static u_int8_t sm = INIT_SEARCHSTART;
 		static u_int16_t xv11_dist_index = 0;
 		static float xv11_speedreg_i = XV11_SPEED_IREG_INIT; //I-Regulator (speed)
@@ -256,7 +256,6 @@ void USART1_IRQHandler(void)
 		default:
 			break;
 		}
-
-		portEND_SWITCHING_ISR(slamTaskWoken);
 	}
+	portEND_SWITCHING_ISR(slamTaskWoken);
 }

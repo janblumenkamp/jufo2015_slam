@@ -56,6 +56,8 @@ portTASK_FUNCTION( vSLAMTask, pvParameters ) {
 
 	for(;;)
 	{
+		foutf(&debugOS, "Watermark slam: %i\n", uxTaskGetStackHighWaterMark( NULL ));
+
 		if(xSemaphoreTake(lidarSync, 0xffff) == pdTRUE) //Synchronize Lidar and SLAM integration (only process SLAM Data (Lidar, etc.) if Lidar has turned 360°)
 		{
 			slam_processLaserscan(&slam, (XV11_t *) &xv11, (motor.speed_l_ms + motor.speed_r_ms) / 2);

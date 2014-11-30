@@ -181,7 +181,7 @@ is included as it is used by the port layer. */
 #endif
 
 #ifndef INCLUDE_uxTaskGetStackHighWaterMark
-	#define INCLUDE_uxTaskGetStackHighWaterMark 0
+	#define INCLUDE_uxTaskGetStackHighWaterMark 1
 #endif
 
 #ifndef INCLUDE_eTaskGetState

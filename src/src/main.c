@@ -106,15 +106,15 @@ int main( void )
 	STM_EVAL_LEDInit(LED6); STM_EVAL_LEDOff(LED4);
 
 	// Tasks get started here...
-	xTaskCreate( vTimeTask, "TIME", configMINIMAL_STACK_SIZE,
+	xTaskCreate( vTimeTask, "TIME",			256,
 			NULL, mainTIME_TASK_PRIORITY, &hTimeTask );
-	xTaskCreate( vDRIVETask, "DRIVE", configMINIMAL_STACK_SIZE,
+	xTaskCreate( vDRIVETask, "DRIVE",		256,
 			NULL, mainDRIVE_TASK_PRIORITY, &hDRIVETask );
-	xTaskCreate( vSLAMTask, "SLAM", configMINIMAL_STACK_SIZE*3,
+	xTaskCreate( vSLAMTask, "SLAM",			1024,
 			NULL, mainSLAM_TASK_PRIORITY, &hSLAMTask );
-	xTaskCreate( vGUITask, "GUI", configMINIMAL_STACK_SIZE * 4,
+	xTaskCreate( vGUITask, "GUI",			512,
 			NULL, mainGUI_TASK_PRIORITY, &hGUITask );
-	xTaskCreate( vDebugTask, "DEBUG", configMINIMAL_STACK_SIZE*2,
+	xTaskCreate( vDebugTask, "DEBUG",		512,
 			NULL, mainGUI_TASK_PRIORITY, &hDebugTask );
 
 	LCD_ResetDevice(); //Reset display here again? Otherwise not working - only a workaround! Still worked at last commit...
@@ -145,17 +145,10 @@ portTASK_FUNCTION( vTimeTask, pvParameters ) {
 
 		ub_touch_handler_50ms();
 
-		foutf(&debug, "idelticks: %i\n", u64IdleTicksCnt);
-
 		// Once per second, copy the number of idle ticks and then
 		// reset the rolling counter. Read out battery.
 		if ( ++i == 20 )
 		{
-			if(slamUI.active)
-				slamUI.active = 0;
-			else
-				slamUI.active = 1;
-
 			comm_readBattData(&battery); //Reads battery data from base
 
 			if(!statusbar_battWarningSent && battery.percent < 20)
@@ -189,7 +182,7 @@ void vApplicationIdleHook( void ) {
 // A required FreeRTOS function.
 // ---------------------------------------------------------------------------- 
 void vApplicationMallocFailedHook( void ) {
-	foutf(&debugOS, "Malloc failed!!!\r\n");
+	foutf(&error, "RTOS Malloc failed!!!\r\n");
 	configASSERT( 0 );  // Latch on any failure / error.
 }
 
@@ -200,7 +193,7 @@ void vApplicationStackOverflowHook(xTaskHandle pxTask, signed char *pcTaskName) 
 		configCHECK_FOR_STACK_OVERFLOW is defined to 1 or 2.  This hook
 		function is called if a stack overflow is detected. */
 
-	foutf(&debugOS, "xTask %s: STACK OVERFLOW DETECTED!!!\r\n", pcTaskName);
+	foutf(&error, "xTask %s: STACK OVERFLOW DETECTED!!!\r\n", pcTaskName);
 	taskDISABLE_INTERRUPTS();
 	for(;;);
 }

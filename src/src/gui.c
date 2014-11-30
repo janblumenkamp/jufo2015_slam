@@ -655,6 +655,8 @@ portTASK_FUNCTION( vGUITask, pvParameters )
 
 	for(;;)
 	{
+		foutf(&debugOS, "Watermark gui: %i\n", uxTaskGetStackHighWaterMark( NULL ));
+
 		gui_handler(gui_element);
 
 		if(STM_EVAL_PBGetState(BUTTON_USER))
