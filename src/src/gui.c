@@ -53,6 +53,10 @@ void gui_el_event_btn_setWp(ELEMENT_EVENT *event);
 void gui_el_event_mbtn_view(ELEMENT_EVENT *event);
 void gui_el_event_mbtn_settings(ELEMENT_EVENT *event);
 void gui_el_event_sw_lidar(ELEMENT_EVENT *event);
+void gui_el_event_sw_strdebug(ELEMENT_EVENT *event);
+void gui_el_event_sw_strdebugos(ELEMENT_EVENT *event);
+void gui_el_event_sw_strerr(ELEMENT_EVENT *event);
+void gui_el_event_sw_strslamui(ELEMENT_EVENT *event);
 void gui_el_event_btn_caltouch(ELEMENT_EVENT *event);
 void gui_el_event_btn_reset(ELEMENT_EVENT *event);
 
@@ -82,6 +86,11 @@ void gui_el_pages_putInvisible(void)
 	gui_element[GUI_EL_SW_LIDAR].state = GUI_EL_INVISIBLE;
 	gui_element[GUI_EL_BTN_CALTOUCH].state = GUI_EL_INVISIBLE;
 	gui_element[GUI_EL_BTN_RESET].state = GUI_EL_INVISIBLE;
+	gui_element[GUI_EL_SW_STRDEBUG].state = GUI_EL_INVISIBLE;
+	gui_element[GUI_EL_SW_STRDEBUGOS].state = GUI_EL_INVISIBLE;
+	gui_element[GUI_EL_SW_STRERR].state = GUI_EL_INVISIBLE;
+	gui_element[GUI_EL_SW_STRSLAMUI].state = GUI_EL_INVISIBLE;
+
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -350,6 +359,91 @@ void gui_el_event_sw_lidar(ELEMENT_EVENT *event)
 }
 
 /////////////////////////////////////////////////////////////////////////////
+/// \brief gui_el_event_sw_strdebug
+/// \param event
+
+void gui_el_event_sw_strdebug(ELEMENT_EVENT *event)
+{
+	if(event->released)
+	{
+		if(gui_element[GUI_EL_SW_STRDEBUG].state == SW_OFF)
+		{
+			debug.active = 1;
+			gui_element[GUI_EL_SW_STRDEBUG].state = SW_ON;
+		}
+		else
+		{
+			debug.active = 0;
+			gui_element[GUI_EL_SW_STRDEBUG].state = SW_OFF;
+		}
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////
+/// \brief gui_el_event_sw_strdebugos
+/// \param event
+
+void gui_el_event_sw_strdebugos(ELEMENT_EVENT *event)
+{
+	if(event->released)
+	{
+		if(gui_element[GUI_EL_SW_STRDEBUGOS].state == SW_OFF)
+		{
+			debugOS.active = 1;
+			gui_element[GUI_EL_SW_STRDEBUGOS].state = SW_ON;
+		}
+		else
+		{
+			debugOS.active = 0;
+			gui_element[GUI_EL_SW_STRDEBUGOS].state = SW_OFF;
+		}
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////
+/// \brief gui_el_event_sw_strerr
+/// \param event
+
+void gui_el_event_sw_strerr(ELEMENT_EVENT *event)
+{
+	if(event->released)
+	{
+		if(gui_element[GUI_EL_SW_STRERR].state == SW_OFF)
+		{
+			error.active = 1;
+			gui_element[GUI_EL_SW_STRERR].state = SW_ON;
+		}
+		else
+		{
+			error.active = 0;
+			gui_element[GUI_EL_SW_STRERR].state = SW_OFF;
+		}
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////
+/// \brief gui_el_event_sw_strslamui
+/// \param event
+
+void gui_el_event_sw_strslamui(ELEMENT_EVENT *event)
+{
+	if(event->released)
+	{
+		if(gui_element[GUI_EL_SW_STRSLAMUI].state == SW_OFF)
+		{
+			slamUI.active = 1;
+			gui_element[GUI_EL_SW_STRSLAMUI].state = SW_ON;
+		}
+		else
+		{
+			slamUI.active = 0;
+			gui_element[GUI_EL_SW_STRSLAMUI].state = SW_OFF;
+		}
+	}
+}
+
+
+/////////////////////////////////////////////////////////////////////////////
 /// \brief gui_el_event_btn_caltouch
 /// \param event
 
@@ -412,6 +506,10 @@ void gui_init(void)
 		gui_element[GUI_EL_BTN_CALTOUCH].id = EL_ID_BTN;
 		gui_element[GUI_EL_BTN_RESET].id = EL_ID_BTN;
 		gui_element[GUI_EL_SW_LIDAR].id = EL_ID_SW;
+		gui_element[GUI_EL_SW_STRDEBUG].id = EL_ID_SW;
+		gui_element[GUI_EL_SW_STRDEBUGOS].id = EL_ID_SW;
+		gui_element[GUI_EL_SW_STRSLAMUI].id = EL_ID_SW;
+		gui_element[GUI_EL_SW_STRERR].id = EL_ID_SW;
 
 	//Load standard settings
 	graphics_init(gui_element);
@@ -507,8 +605,33 @@ void gui_init(void)
 		gui_element[GUI_EL_SW_LIDAR].action = &gui_el_event_sw_lidar;
 		gui_element[GUI_EL_SW_LIDAR].state = GUI_EL_INVISIBLE;
 
+		gui_element[GUI_EL_SW_STRDEBUG].x = PAGE_GRID_DIST;
+		gui_element[GUI_EL_SW_STRDEBUG].y = gui_element[GUI_EL_SW_LIDAR].y + gui_element[GUI_EL_SW_LIDAR].heigth + 5;
+		gui_element[GUI_EL_SW_STRDEBUG].label = (char *)"Debug:";
+		gui_element[GUI_EL_SW_STRDEBUG].action = &gui_el_event_sw_strdebug;
+		gui_element[GUI_EL_SW_STRDEBUG].state = GUI_EL_INVISIBLE;
+
+		gui_element[GUI_EL_SW_STRDEBUGOS].x = PAGE_GRID_DIST;
+		gui_element[GUI_EL_SW_STRDEBUGOS].y = gui_element[GUI_EL_SW_STRDEBUG].y + gui_element[GUI_EL_SW_STRDEBUG].heigth + 5;
+		gui_element[GUI_EL_SW_STRDEBUGOS].label = (char *)"Debug OS:";
+		gui_element[GUI_EL_SW_STRDEBUGOS].action = &gui_el_event_sw_strdebugos;
+		gui_element[GUI_EL_SW_STRDEBUGOS].state = GUI_EL_INVISIBLE;
+
+		gui_element[GUI_EL_SW_STRERR].x = PAGE_GRID_DIST;
+		gui_element[GUI_EL_SW_STRERR].y = gui_element[GUI_EL_SW_STRDEBUGOS].y + gui_element[GUI_EL_SW_STRDEBUGOS].heigth + 5;
+		gui_element[GUI_EL_SW_STRERR].label = (char *)"Stream err:";
+		gui_element[GUI_EL_SW_STRERR].action = &gui_el_event_sw_strerr;
+		gui_element[GUI_EL_SW_STRERR].state = GUI_EL_INVISIBLE;
+
+		gui_element[GUI_EL_SW_STRSLAMUI].x = PAGE_GRID_DIST;
+		gui_element[GUI_EL_SW_STRSLAMUI].y = gui_element[GUI_EL_SW_STRERR].y + gui_element[GUI_EL_SW_STRERR].heigth + 5;
+		gui_element[GUI_EL_SW_STRSLAMUI].label = (char *)"SlamUI:";
+		gui_element[GUI_EL_SW_STRSLAMUI].action = &gui_el_event_sw_strslamui;
+		gui_element[GUI_EL_SW_STRSLAMUI].state = GUI_EL_INVISIBLE;
+
+
 	for(u8 i = 0; i < STAT_STACK_SIZE; i++)
-		statusbar_addMessage((char *) "-", LCD_COLOR_WHITE);
+		statusbar_addMessage((char *) " ", LCD_COLOR_WHITE);
 
 	statusbar_addMessage((char *) "Jugend Forscht 2015 - System started.", LCD_COLOR_WHITE);
 
@@ -625,6 +748,19 @@ portTASK_FUNCTION( vGUITask, pvParameters )
 			default:															break;
 			}
 			gui_drawSW(&gui_element[GUI_EL_SW_LIDAR]);
+
+			if(debug.active)	gui_element[GUI_EL_SW_STRDEBUG].state = SW_ON; //Stream on/off switches
+			else				gui_element[GUI_EL_SW_STRDEBUG].state = SW_OFF;
+			gui_drawSW(&gui_element[GUI_EL_SW_STRDEBUG]);
+			if(debugOS.active)	gui_element[GUI_EL_SW_STRDEBUGOS].state = SW_ON;
+			else				gui_element[GUI_EL_SW_STRDEBUGOS].state = SW_OFF;
+			gui_drawSW(&gui_element[GUI_EL_SW_STRDEBUGOS]);
+			if(error.active)	gui_element[GUI_EL_SW_STRERR].state = SW_ON;
+			else				gui_element[GUI_EL_SW_STRERR].state = SW_OFF;
+			gui_drawSW(&gui_element[GUI_EL_SW_STRERR]);
+			if(slamUI.active)	gui_element[GUI_EL_SW_STRSLAMUI].state = SW_ON;
+			else				gui_element[GUI_EL_SW_STRSLAMUI].state = SW_OFF;
+			gui_drawSW(&gui_element[GUI_EL_SW_STRSLAMUI]);
 
 			gui_element[GUI_EL_BTN_CALTOUCH].state = BTN_NOT_ACTIVE;
 			gui_drawBTN(&gui_element[GUI_EL_BTN_CALTOUCH]);

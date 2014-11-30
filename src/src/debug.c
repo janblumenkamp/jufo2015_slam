@@ -73,7 +73,7 @@ portTASK_FUNCTION( vDebugTask, pvParameters ) {
 		outf("Lidar back: %i\n", xv11.dist_polar[270]);
 		outf("Lidar left: %i\n\n", xv11.dist_polar[180]);*/
 
-		//pcui_sendMap(&slam);
+		pcui_sendMap(&slam);
 
 		vTaskDelayUntil( &xLastWakeTime, ( 1000 / portTICK_RATE_MS ) );
 	}
@@ -133,45 +133,52 @@ void pcui_sendMsg(char *id, u_int32_t length, char *msg)
 /// \param slam
 ///			Pointer to slam container
 ///
+
+//int sm_sendMap = 0; //As statemachine, otherwise it would take too much time
+
 void pcui_sendMap(slam_t *slam)
 {
-	char mpd[13]; //MaPData message container array
-
-	mpd[0] = MAP_RESOLUTION_MM;
-	mpd[1] = (MAP_SIZE_X_MM & 0xff);
-	mpd[2] = (MAP_SIZE_X_MM & 0xff00) >> 8;
-	mpd[3] = (MAP_SIZE_Y_MM & 0xff);
-	mpd[4] = (MAP_SIZE_Y_MM & 0xff00) >> 8;
-	mpd[5] = MAP_SIZE_Z_LAYERS;
-	mpd[6] = ((char)slam->robot_pos.coord.x & 0xff); //Has to be converted from float to char
-	mpd[7] = ((char)slam->robot_pos.coord.x & 0xff00) >> 8;
-	mpd[8] = ((char)slam->robot_pos.coord.y & 0xff);
-	mpd[9] = ((char)slam->robot_pos.coord.y & 0xff00) >> 8;
-	mpd[10] = slam->robot_pos.coord.z;
-	mpd[11] = ((char)slam->robot_pos.psi & 0xff);
-	mpd[12] = ((char)slam->robot_pos.psi & 0xff00) >> 8;
-
-	pcui_sendMsg("MPD", 13, mpd); //Send mapdata
-
-	for(uint8_t z = 0; z < MAP_SIZE_Z_LAYERS; z++)
+	if(slamUI.active)
 	{
-		for(int16_t y = 0; y < (MAP_SIZE_Y_MM / MAP_RESOLUTION_MM); y++)
+		char mpd[13]; //MaPData message container array
+
+		mpd[0] = MAP_RESOLUTION_MM;
+		mpd[1] = (MAP_SIZE_X_MM & 0xff);
+		mpd[2] = (MAP_SIZE_X_MM & 0xff00) >> 8;
+		mpd[3] = (MAP_SIZE_Y_MM & 0xff);
+		mpd[4] = (MAP_SIZE_Y_MM & 0xff00) >> 8;
+		mpd[5] = MAP_SIZE_Z_LAYERS;
+		mpd[6] = ((char)slam->robot_pos.coord.x & 0xff); //Has to be converted from float to char
+		mpd[7] = ((char)slam->robot_pos.coord.x & 0xff00) >> 8;
+		mpd[8] = ((char)slam->robot_pos.coord.y & 0xff);
+		mpd[9] = ((char)slam->robot_pos.coord.y & 0xff00) >> 8;
+		mpd[10] = slam->robot_pos.coord.z;
+		mpd[11] = ((char)slam->robot_pos.psi & 0xff);
+		mpd[12] = ((char)slam->robot_pos.psi & 0xff00) >> 8;
+
+		out_puts_l(&slamUI, "\e[0m", 5); //VT100: clear all colorsettings
+		pcui_sendMsg("MPD", 13, mpd); //Send mapdata
+
+		for(uint8_t z = 0; z < MAP_SIZE_Z_LAYERS; z++)
 		{
-			/// Send a message for each line of the map. If we send the whole map, we would calculate the
-			/// checksum and be ready one second after that - in the meantime, the map would have changed
-			/// and the checksum does not matches anymore. Therefore, we save the current line (y), transmit it
-			/// with the line information and the matching checksum and receive it as message on the pc. If the
-			/// checksum does not matches there, we simply ignore the line and go on.
+			for(int16_t y = 0; y < (MAP_SIZE_Y_MM / MAP_RESOLUTION_MM); y++)
+			{
+				/// Send a message for each line of the map. If we send the whole map, we would calculate the
+				/// checksum and be ready one second after that - in the meantime, the map would have changed
+				/// and the checksum does not matches anymore. Therefore, we save the current line (y), transmit it
+				/// with the line information and the matching checksum and receive it as message on the pc. If the
+				/// checksum does not matches there, we simply ignore the line and go on.
 
-			char buf[(MAP_SIZE_X_MM / MAP_RESOLUTION_MM) + 3];
-			buf[0] = z; //Current stage to send
-			buf[1] = y & 0xff; //Current line to send
-			buf[2] = (y & 0xff00) >> 8;
+				char buf[(MAP_SIZE_X_MM / MAP_RESOLUTION_MM) + 3];
+				buf[0] = z; //Current stage to send
+				buf[1] = y & 0xff; //Current line to send
+				buf[2] = (y & 0xff00) >> 8;
 
-			for(int i = 0; i < (MAP_SIZE_X_MM / MAP_RESOLUTION_MM); i++) //Map information itself beginning in byte 3
-				buf[i + 3] = slam->map.px[i][y][z];
+				for(int i = 0; i < (MAP_SIZE_X_MM / MAP_RESOLUTION_MM); i++) //Map information itself beginning in byte 3
+					buf[i + 3] = slam->map.px[i][y][z];
 
-			pcui_sendMsg("MAP", (MAP_SIZE_X_MM / MAP_RESOLUTION_MM) + 3, buf); //Send line
+				pcui_sendMsg("MAP", (MAP_SIZE_X_MM / MAP_RESOLUTION_MM) + 3, buf); //Send line
+			}
 		}
 	}
 }

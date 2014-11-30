@@ -72,6 +72,12 @@ enum GUI_ELEMENTS {
 		GUI_EL_BTN_CALTOUCH, //Calibrate Touchscreen
 		GUI_EL_BTN_RESET, //Reset device - doubleclick nessesary!
 		GUI_EL_SW_LIDAR, //Lidar on/off
+		GUI_EL_SW_STRSLAMUI, //SlamUI stream on/off
+		GUI_EL_SW_STRDEBUGOS, //debugOS stream on/off
+		GUI_EL_SW_STRDEBUG, //debug stream on/off
+		GUI_EL_SW_STRERR, //error stream on/off
+
+
 	//////////DO NOT ADD ANYTHING BELOW THIS LINE!!!////////////
 	GUI_ELEMENTS_CNT
 };

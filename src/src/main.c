@@ -42,6 +42,8 @@
 #include "xv11.h"
 #include "main.h"
 #include "gui.h"
+#include "gui_graphics.h"
+#include "gui_areaElements.h"
 #include "slam.h"
 #include "comm.h"
 #include "comm_api.h"
@@ -127,6 +129,8 @@ int main( void )
 // This task should run every 50ms.  The task will average 50ms over time by
 // monitoring the actual time between calls and self adjusting accordingly.
 // ---------------------------------------------------------------------------- 
+u8 statusbar_battWarningSent = 0; //Set to 1 if battery warning was sent to statusbar one time!
+
 portTASK_FUNCTION( vTimeTask, pvParameters ) {
     portTickType xLastWakeTime;
     uint8_t i=0;
@@ -141,11 +145,24 @@ portTASK_FUNCTION( vTimeTask, pvParameters ) {
 
 		ub_touch_handler_50ms();
 
+		foutf(&debug, "idelticks: %i\n", u64IdleTicksCnt);
+
 		// Once per second, copy the number of idle ticks and then
 		// reset the rolling counter. Read out battery.
 		if ( ++i == 20 )
 		{
+			if(slamUI.active)
+				slamUI.active = 0;
+			else
+				slamUI.active = 1;
+
 			comm_readBattData(&battery); //Reads battery data from base
+
+			if(!statusbar_battWarningSent && battery.percent < 20)
+			{
+				statusbar_battWarningSent = 1;
+				statusbar_addMessage((char *) "Battery warning!", LCD_COLOR_YELLOW);
+			}
 
 			i = 0;
             u64IdleTicks = u64IdleTicksCnt;

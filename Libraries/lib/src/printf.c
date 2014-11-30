@@ -54,7 +54,7 @@ void out_init(void)
 	47	White
 	 */
 
-	slamUI.active = 1;
+	slamUI.active = 0;
 	slamUI.bgcolor = 0;
 	slamUI.textcolor = 0;
 	slamUI.put_c = &usart2_put;
@@ -545,37 +545,40 @@ signed int out_fputs(const char *pStr, stream_t *pStream) {
 
 	signed int num = 0;
 
-	char vt100[6] = "\e[30m"; //textcolor black
-
-	if(pStream->bgcolor != 0)
+	if(pStream->active)
 	{
-		vt100[3] = pStream->bgcolor % 10 + 48; //10. 48: ASCII 0
-		vt100[2] = pStream->bgcolor / 10 + 48; //1
-		out_puts_l(pStream, vt100, 6);
-	}
+		char vt100[6] = "\e[30m"; //textcolor black
 
-	if(pStream->textcolor != 0)
-	{
-		vt100[3] = pStream->textcolor % 10 + 48; //10. 48: ASCII 0
-		vt100[2] = pStream->textcolor / 10 + 48; //1
-		out_puts_l(pStream, vt100, 6);
-	}
-
-	taskENTER_CRITICAL();
-	while (*pStr != 0)
-	{
-		if(pStream->put_c != NULL)
+		if(pStream->bgcolor != 0)
 		{
-			if((pStream->put_c((char)*pStr) == -1))
-				return -1;
+			vt100[3] = pStream->bgcolor % 10 + 48; //10. 48: ASCII 0
+			vt100[2] = pStream->bgcolor / 10 + 48; //1
+			out_puts_l(pStream, vt100, 6);
 		}
-		else
-			out_n_fputc('?');
 
-		num++;
-		pStr++;
+		if(pStream->textcolor != 0)
+		{
+			vt100[3] = pStream->textcolor % 10 + 48; //10. 48: ASCII 0
+			vt100[2] = pStream->textcolor / 10 + 48; //1
+			out_puts_l(pStream, vt100, 6);
+		}
+
+		taskENTER_CRITICAL();
+		while (*pStr != 0)
+		{
+			if(pStream->put_c != NULL)
+			{
+				if((pStream->put_c((char)*pStr) == -1))
+					return -1;
+			}
+			else
+				out_n_fputc('?');
+
+			num++;
+			pStr++;
+		}
+		taskEXIT_CRITICAL();
 	}
-	taskEXIT_CRITICAL();
 
 	return num;
 }
