@@ -11,7 +11,7 @@
 #include "stm32f4xx.h"
 #include "stm32f4_discovery.h"
 #include "utils.h"
-#include "printf.h"
+#include "outf.h"
 
 #include <stdarg.h>
 #include <ctype.h>

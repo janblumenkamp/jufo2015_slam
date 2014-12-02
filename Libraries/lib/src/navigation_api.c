@@ -9,7 +9,7 @@
 #include "main.h"
 #include "navigation.h"
 #include "navigation_api.h"
-#include "printf.h"
+#include "outf.h"
 
 nav_waypoint_t nav_waypoints[WP_STACKSIZE]; //Waypoint stack
 nav_waypoint_t *nav_wpStart, *nav_wpEnd; //Pointer to first and last waypoint

@@ -68,7 +68,7 @@
 #include "stm32f4xx_conf.h"
 #include "main.h"
 #include "comm_api.h"
-#include "printf.h"
+#include "outf.h"
 
 comm_msg_t receivedMessage;
 uint8_t messageBuffer[COMM_BUFSIZE];
@@ -195,6 +195,8 @@ void USART3_IRQHandler(void)
 
 			if(comm_batch_i <= receivedMessage.batch)
 				break;
+
+			//no break
 
 		case GET_CHK_LSB: //Checksum LSB
 			receivedMessage.checksum = data << 8;

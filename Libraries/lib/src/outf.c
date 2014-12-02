@@ -10,7 +10,7 @@
  ********************************************************************************/
 #include "stm32f4xx_conf.h"
 #include <stdarg.h>
-#include "printf.h"
+#include "outf.h"
 
 #include "FreeRTOS.h"
 #include "task.h"

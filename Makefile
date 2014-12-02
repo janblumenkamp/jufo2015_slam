@@ -155,7 +155,7 @@ SRC+=slamcore.c
 SRC+=slam_random.c
 
 #lib
-SRC+=printf.c
+SRC+=outf.c
 SRC+=stm32_ub_touch_ADS7843.c
 SRC+=gui_graphics.c
 SRC+=comm_api.c

@@ -1,5 +1,5 @@
-#ifndef PRINTF_H
-#define PRINTF_H
+#ifndef OUTF_H
+#define OUTF_H
 
 #include "stm32f4xx_conf.h"
 #include <stdarg.h>
@@ -40,4 +40,4 @@ extern signed int out_n_fputc(signed int c);
 
 extern signed int out_fputs(const char *pStr, stream_t *pStream);
 
-#endif // PRINTF_H
+#endif // OUTF_H

@@ -13,7 +13,7 @@
 #include "stm32f4xx_conf.h"
 #include "utils.h"
 #include "debug.h"
-#include "printf.h"
+#include "outf.h"
 #include "xv11.h"
 #include "main.h"
 

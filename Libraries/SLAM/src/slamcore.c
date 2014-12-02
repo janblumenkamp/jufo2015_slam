@@ -5,7 +5,7 @@
 #include "slamdefs.h"
 #include "math.h"
 #include "stdlib.h"
-#include "printf.h"
+#include "outf.h"
 #include "xv11.h"
 
 /////////////////////////////////////////////////////////////////////////////

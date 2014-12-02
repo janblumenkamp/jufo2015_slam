@@ -38,7 +38,7 @@
 #include "stm32f4xx_conf.h"
 #include "utils.h"
 #include "debug.h"
-#include "printf.h"
+#include "outf.h"
 #include "xv11.h"
 #include "main.h"
 #include "gui.h"
@@ -53,9 +53,10 @@
 #include "stm32_ub_pwm_tim3.h"
 
 // Task priorities: Higher numbers are higher priority.
-#define mainTIME_TASK_PRIORITY      ( tskIDLE_PRIORITY + 4 )
-#define mainDRIVE_TASK_PRIORITY       ( tskIDLE_PRIORITY + 3 )
-#define mainSLAM_TASK_PRIORITY       ( tskIDLE_PRIORITY + 2 )
+#define mainTIME_TASK_PRIORITY      ( tskIDLE_PRIORITY + 6 )
+#define mainDRIVE_TASK_PRIORITY       ( tskIDLE_PRIORITY + 5 )
+#define mainSLAM_TASK_PRIORITY       ( tskIDLE_PRIORITY + 4 )
+#define mainLIDAR_TASK_PRIORITY       ( tskIDLE_PRIORITY + 3 )
 #define mainGUI_TASK_PRIORITY       ( tskIDLE_PRIORITY + 2 )
 #define mainDEBUG_TASK_PRIORITY     ( tskIDLE_PRIORITY + 1 )
 #define mainINTEGER_TASK_PRIORITY   ( tskIDLE_PRIORITY )
@@ -63,12 +64,14 @@
 xTaskHandle hTimeTask;
 xTaskHandle hDRIVETask;
 xTaskHandle hSLAMTask;
+xTaskHandle hLIDARTask;
 xTaskHandle hGUITask;
 xTaskHandle hDebugTask;
 
 portTASK_FUNCTION_PROTO( vTimeTask, pvParameters );
 portTASK_FUNCTION_PROTO( vDRIVETask, pvParameters );
 portTASK_FUNCTION_PROTO( vSLAMTask, pvParameters );
+portTASK_FUNCTION_PROTO( vLIDARTask, pvParameters );
 portTASK_FUNCTION_PROTO( vGUITask, pvParameters );
 portTASK_FUNCTION_PROTO( vDebugTask, pvParameters );
 
@@ -113,8 +116,10 @@ int main( void )
 	xTaskCreate( vSLAMTask, "SLAM",			1024,
 			NULL, mainSLAM_TASK_PRIORITY, &hSLAMTask );
 	xTaskCreate( vGUITask, "GUI",			512,
-			NULL, mainGUI_TASK_PRIORITY, &hGUITask );
-	xTaskCreate( vDebugTask, "DEBUG",		512,
+				NULL, mainGUI_TASK_PRIORITY, &hGUITask );
+	xTaskCreate( vLIDARTask, "LIDAR",			512,
+				NULL, mainLIDAR_TASK_PRIORITY, &hLIDARTask );
+		xTaskCreate( vDebugTask, "DEBUG",		512,
 			NULL, mainGUI_TASK_PRIORITY, &hDebugTask );
 
 	LCD_ResetDevice(); //Reset display here again? Otherwise not working - only a workaround! Still worked at last commit...

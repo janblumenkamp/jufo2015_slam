@@ -48,7 +48,7 @@
 #include "utils.h"
 #include "gui.h"
 #include "main.h"
-#include "printf.h"
+#include "outf.h"
 #include "comm_api.h"
 #include "comm.h"
 #include "xv11.h"

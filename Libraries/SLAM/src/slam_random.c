@@ -1,7 +1,7 @@
 #include "slamdefs.h"
 #include <math.h>
 #include <stdlib.h>
-#include "printf.h"
+#include "outf.h"
 
 int slam_monteCarloSearch(slam_t *slam, int sigma_xy, int sigma_psi, int stop)
 {

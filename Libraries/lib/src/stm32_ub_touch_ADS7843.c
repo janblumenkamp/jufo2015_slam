@@ -36,7 +36,7 @@
 // Includes
 //--------------------------------------------------------------
 #include "stm32_ub_touch_ADS7843.h"
-#include "printf.h"
+#include "outf.h"
 
 //--------------------------------------------------------------
 // interne Enumerationen

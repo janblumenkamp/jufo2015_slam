@@ -5,7 +5,7 @@
 #include "main.h"
 #include "navigation.h"
 #include "navigation_api.h"
-#include "printf.h"
+#include "outf.h"
 #include "slam.h"
 #include "math.h"
 #include "stdlib.h"

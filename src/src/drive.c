@@ -11,7 +11,7 @@
 #include "navigation.h"
 
 #include "gui.h"
-#include "printf.h"
+#include "outf.h"
 
 #include <stdlib.h>
 #include <stdio.h>

@@ -5,7 +5,7 @@
 #include "xv11.h"
 #include "main.h"
 #include "utils.h"
-#include "printf.h"
+#include "outf.h"
 #include "stm32_ub_pwm_tim3.h"
 #include "slam.h"
 #include "slamdefs.h"
@@ -260,4 +260,22 @@ void USART1_IRQHandler(void)
 		}
 	}
 	//portEND_SWITCHING_ISR(slamTaskWoken);
+}
+
+// Task for processing the lidar data
+// ----------------------------------------------------------------------------
+
+portTASK_FUNCTION( vLIDARTask, pvParameters ) {
+    portTickType xLastWakeTime;
+    uint8_t i=0;
+
+	foutf(&debugOS, "xTask LIDAR started.\r\n");
+
+    xLastWakeTime = xTaskGetTickCount();
+
+	for(;;)
+	{
+
+		vTaskDelayUntil( &xLastWakeTime, ( 50 / portTICK_RATE_MS ) );
+    }
 }

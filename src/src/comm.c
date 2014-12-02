@@ -12,7 +12,7 @@
 #include "comm_api.h"
 #include "slam.h"
 #include "slamdefs.h"
-#include "printf.h"
+#include "outf.h"
 #include "math.h"
 
 static volatile uint8_t comm_reg[COMM_REGSIZE];
@@ -25,7 +25,7 @@ uint8_t comm_handler_sm = 0;
 
 void comm_handler(void)
 {
-
+	comm_reg[0] = 1;
 }
 
 //////////////////////////////////////////////////////////////////////////

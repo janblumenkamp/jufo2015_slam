@@ -9,7 +9,7 @@
 #include "SSD1963.h"
 #include "stm32_ub_font.h"
 #include "stm32_ub_touch_ADS7843.h"
-#include "printf.h"
+#include "outf.h"
 #include <math.h>
 
 //////////////////////////////////////////////////////////////////////////////
