@@ -14,6 +14,7 @@
 
 #include "FreeRTOS.h"
 #include "task.h"
+#include "stm32f4xx_conf.h"
 
 
 stream_t slamUI;
@@ -547,7 +548,7 @@ signed int out_fputs(const char *pStr, stream_t *pStream) {
 
 	if(pStream->active)
 	{
-		char vt100[6] = "\e[30m"; //textcolor black
+		char vt100[7] = "\e[30m"; //textcolor black
 
 		if(pStream->bgcolor != 0)
 		{

@@ -106,9 +106,9 @@ int main( void )
 	STM_EVAL_LEDInit(LED6); STM_EVAL_LEDOff(LED4);
 
 	// Tasks get started here...
-	xTaskCreate( vTimeTask, "TIME",			256,
+	xTaskCreate( vTimeTask, "TIME",			1024,
 			NULL, mainTIME_TASK_PRIORITY, &hTimeTask );
-	xTaskCreate( vDRIVETask, "DRIVE",		256,
+	xTaskCreate( vDRIVETask, "DRIVE",		1024,
 			NULL, mainDRIVE_TASK_PRIORITY, &hDRIVETask );
 	xTaskCreate( vSLAMTask, "SLAM",			1024,
 			NULL, mainSLAM_TASK_PRIORITY, &hSLAMTask );
@@ -151,11 +151,11 @@ portTASK_FUNCTION( vTimeTask, pvParameters ) {
 		{
 			comm_readBattData(&battery); //Reads battery data from base
 
-			if(!statusbar_battWarningSent && battery.percent < 20)
+			/*if(!statusbar_battWarningSent && battery.percent < 20)
 			{
 				statusbar_battWarningSent = 1;
 				statusbar_addMessage((char *) "Battery warning!", LCD_COLOR_YELLOW);
-			}
+			}*/
 
 			i = 0;
             u64IdleTicks = u64IdleTicksCnt;
@@ -182,6 +182,7 @@ void vApplicationIdleHook( void ) {
 // A required FreeRTOS function.
 // ---------------------------------------------------------------------------- 
 void vApplicationMallocFailedHook( void ) {
+	STM_EVAL_LEDOn(LED6);
 	foutf(&error, "RTOS Malloc failed!!!\r\n");
 	configASSERT( 0 );  // Latch on any failure / error.
 }
@@ -193,6 +194,7 @@ void vApplicationStackOverflowHook(xTaskHandle pxTask, signed char *pcTaskName) 
 		configCHECK_FOR_STACK_OVERFLOW is defined to 1 or 2.  This hook
 		function is called if a stack overflow is detected. */
 
+	STM_EVAL_LEDOn(LED6);
 	foutf(&error, "xTask %s: STACK OVERFLOW DETECTED!!!\r\n", pcTaskName);
 	taskDISABLE_INTERRUPTS();
 	for(;;);

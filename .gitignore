@@ -13,3 +13,8 @@ README.md
 /build
 *.pdf
 *.txt
+/RemoteSystemsTempFiles
+/.metadata
+/.settings
+*.project
+*.cproject

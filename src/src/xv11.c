@@ -13,6 +13,8 @@
 #include "FreeRTOS.h"
 #include "semphr.h"
 
+#include "stm32f4_discovery.h"
+
 volatile XV11_t xv11;
 
 volatile slam_coordinates_t scanStart_lastRobPos;
@@ -105,7 +107,7 @@ void xv11_init(void)
 	NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
 
 	// entspricht 11-15, 11 ist das höchst mögliche, sonst gibt es Probleme mit dem OS
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = (configMAX_SYSCALL_INTERRUPT_PRIORITY >> 4) + 1;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 5;//(configMAX_SYSCALL_INTERRUPT_PRIORITY >> 4) + 1;
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init( &NVIC_InitStructure );
@@ -205,8 +207,8 @@ void USART1_IRQHandler(void)
 					xv11_dist_index = (xv11_package[INDEX] - 0xA0) * 4;
 					xv11.speed = (xv11_package[SPEED_LSB] | (xv11_package[SPEED_MSB] << 8)) / 64.0;
 
-					if(xv11_dist_index == 0) //Synchronization var with the slam algorithm
-						xSemaphoreGiveFromISR( lidarSync, &slamTaskWoken );
+					//if(xv11_dist_index == 0) //Synchronization var with the slam algorithm
+					//	xSemaphoreGiveFromISR( lidarSync, &slamTaskWoken );
 
 					for(u8 i = 0; i < 4; i++)
 					{
@@ -257,5 +259,5 @@ void USART1_IRQHandler(void)
 			break;
 		}
 	}
-	portEND_SWITCHING_ISR(slamTaskWoken);
+	//portEND_SWITCHING_ISR(slamTaskWoken);
 }

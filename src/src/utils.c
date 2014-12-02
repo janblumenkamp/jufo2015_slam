@@ -89,11 +89,17 @@ void vUSART2_Init( void ) {
 	 */
 	USART_ITConfig(USART2, USART_IT_RXNE, ENABLE); // enable the USART3 receive interrupt
 
-	NVIC_InitStructure.NVIC_IRQChannel = USART2_IRQn;		 // we want to configure the USART2 interrupts
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;// this sets the priority group of the USART2 interrupts
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;		 // this sets the subpriority inside the group
-	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;			 // the USART2 interrupts are globally enabled
-	NVIC_Init(&NVIC_InitStructure);							 // the properties are passed to the NVIC_Init function which takes care of the low level stuff
+	// Configure the NVIC Preemption Priority Bits
+	// wichtig!, sonst stimmt nichts überein mit den neuen ST Libs (ab Version 3.1.0)
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
+	NVIC_InitStructure.NVIC_IRQChannel = USART2_IRQn;
+
+	// entspricht 11-15, 11 ist das höchst mögliche, sonst gibt es Probleme mit dem OS
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = (configMAX_SYSCALL_INTERRUPT_PRIORITY >> 4) + 1;
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_Init( &NVIC_InitStructure );
+
 
 	// finally this enables the complete USART2 peripheral
 	USART_Cmd(USART2, ENABLE);
