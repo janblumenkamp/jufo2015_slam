@@ -431,12 +431,12 @@ void gui_el_event_sw_strslamui(ELEMENT_EVENT *event)
 	{
 		if(gui_element[GUI_EL_SW_STRSLAMUI].state == SW_OFF)
 		{
-			slamUI.active = 1;
+			out_onOff(&slamUI, 1);
 			gui_element[GUI_EL_SW_STRSLAMUI].state = SW_ON;
 		}
 		else
 		{
-			slamUI.active = 0;
+			out_onOff(&slamUI, 0);
 			gui_element[GUI_EL_SW_STRSLAMUI].state = SW_OFF;
 		}
 	}
@@ -647,7 +647,7 @@ portTASK_FUNCTION( vGUITask, pvParameters )
 {
 	portTickType xLastWakeTime;
 
-	foutf(&debugOS, "xTask GUI started.\r\n");
+	foutf(&debugOS, "xTask GUI started.\n");
 
 	xLastWakeTime = xTaskGetTickCount();
 
@@ -655,7 +655,7 @@ portTASK_FUNCTION( vGUITask, pvParameters )
 
 	for(;;)
 	{
-		foutf(&debugOS, "Watermark gui: %i\n", uxTaskGetStackHighWaterMark( NULL ));
+		//foutf(&debugOS, "Watermark gui: %i\n", uxTaskGetStackHighWaterMark( NULL ));
 
 		gui_handler(gui_element);
 

@@ -24,13 +24,31 @@ stream_t debugOS;
 stream_t error;
 
 //Puts a character to the output queue, which (later) transmit its through the transmit isr. Fast, only for much data/debugging
+int8_t usart2queue_put_spaceErrSent = 0;
+int8_t usart2queue_put_NULLErrSent = 0;
+
 int8_t usart2queue_put(char c)
 {
-	/*USART_SendData(USART2, (uint8_t) c);
-	// Loop until the end of transmission
-	while (USART_GetFlagStatus(USART2, USART_FLAG_TC) == RESET);*/
-	//static BaseType_t usart2putted = pdFALSE;
-	//xQueueSendToBack(xQueueTXUSART2, &c, 0);
+	if(xQueueTXUSART2 != 0) //If queue was already created
+	{
+		usart2queue_put_NULLErrSent = 0;
+		if(xQueueSendToBack(xQueueTXUSART2, &c, 0)) //character is in queue now
+		{
+			usart2queue_put_spaceErrSent = 1;
+			if(USART_GetITStatus (USART2 ,USART_IT_TXE) != SET) //If transmit interrupt is not active, activate it to send data from queue
+				USART_ITConfig(USART2, USART_IT_TXE, ENABLE);
+		}
+		else if(!usart2queue_put_spaceErrSent)
+		{
+			usart2queue_put_spaceErrSent = 1;
+			foutf(&error, "txerr: Queue_SPACE\n");
+		}
+	}
+	else if(!usart2queue_put_NULLErrSent)
+	{
+		usart2queue_put_NULLErrSent = 1;
+		foutf(&error, "txerr: Queue_NULL\n");
+	}
 
 	return c;
 }
@@ -69,7 +87,7 @@ void out_init(void)
 	47	White
 	 */
 
-	slamUI.active = 0;
+	slamUI.active = 1;
 	slamUI.bgcolor = 0;
 	slamUI.textcolor = 0;
 	slamUI.put_c = &usart2queue_put;
@@ -77,19 +95,23 @@ void out_init(void)
 	debug.active = 1;
 	debug.bgcolor = 42; //green
 	debug.textcolor = 30; //black
-	debug.put_c = &usart2_put;
+	debug.put_c = &usart2queue_put;
 
 	debugOS.active = 1;
 	debugOS.bgcolor = 43; //Yellow
 	debugOS.textcolor = 30; //black
-	debugOS.put_c = &usart2queue_put;
+	debugOS.put_c = &usart2_put;
 
 	error.active = 1;
 	error.bgcolor = 41; //red
 	error.textcolor = 30; //black
-	error.put_c = &usart2queue_put;
+	error.put_c = &usart2_put;
 }
 
+void out_onOff(stream_t *stream, u_int8_t state)
+{
+	stream->active = state;
+}
 
 ////////////////////////////////////////////////////////////////////////////////7
 ////////////////////////////////////////////////////////////////////////////////
@@ -537,13 +559,11 @@ signed int soutf(char *pStr, const char *pFormat, ...)
 
 void out_puts_l(stream_t *pStream, const char *pStr, u_int32_t len)
 {
-	taskENTER_CRITICAL();
 	for(u_int32_t i = 0; i < len; i++)
 	{
-		if(pStream->put_c != NULL)
+		if(pStream->put_c != NULL && pStream->active)
 			pStream->put_c((char) pStr[i]);
 	}
-	taskEXIT_CRITICAL();
 }
 
 /**
@@ -578,7 +598,6 @@ signed int out_fputs(const char *pStr, stream_t *pStream) {
 			out_puts_l(pStream, vt100, 6);
 		}
 
-		taskENTER_CRITICAL();
 		while (*pStr != 0)
 		{
 			if(pStream->put_c != NULL)
@@ -592,7 +611,6 @@ signed int out_fputs(const char *pStr, stream_t *pStream) {
 			num++;
 			pStr++;
 		}
-		taskEXIT_CRITICAL();
 	}
 
 	return num;

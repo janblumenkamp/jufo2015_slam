@@ -4,6 +4,28 @@
 #include "main.h"
 #include "queue.h"
 
+/* Spin...3 ESCs or BREAK to abort...:)
+
+Piccolo Laser Distance Scanner
+
+Copyright (c) 2009-2011 Neato Robotics, Inc.
+
+All Rights Reserved
+
+
+
+Loader	V2.5.15295
+
+CPU	F2802x/c001
+
+Serial	KSH42612AA-0070252
+
+LastCal	[5371726C]
+
+Runtime	V2.6.15295
+
+*/
+
 #ifndef XV11_H
 #define XV11_H
 

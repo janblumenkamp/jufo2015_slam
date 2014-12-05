@@ -22,6 +22,8 @@ extern stream_t error;
 
 extern void out_init(void);
 
+extern void out_onOff(stream_t *stream, u_int8_t state);
+
 extern signed int vsnoutf(char *pStr, size_t length, const char *pFormat, va_list ap);
 
 extern signed int snoutf(char *pString, size_t length, const char *pFormat, ...);

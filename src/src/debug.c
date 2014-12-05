@@ -74,29 +74,29 @@ portTASK_FUNCTION( vDebugTask, pvParameters ) {
 
 	for(;;)
 	{
-		foutf(&debugOS, "Watermark debug: %i\n", uxTaskGetStackHighWaterMark( NULL ));
-
-		//if(slamUI.active)
-		//	pcui_sendMap(&slam);
-
-		char data;
-		if(xQueueReceive(xQueueLidar, &data, (TickType_t)20)) //Blocks until new data arrive
-		{
-			USART_SendData(USART2, (uint8_t) data);
-			while (USART_GetFlagStatus(USART2, USART_FLAG_TC) == RESET); // Loop until the end of transmission
-		}
+		pcui_sendMap(&slam);
 	}
 }
 
 void USART2_IRQHandler(void) //PCUI Receive...
 {
-	// check if the USART1 receive interrupt flag was set
+	static BaseType_t usart2tx_ISRnewDat = pdFALSE;
+
+	/*// check if the USART1 receive interrupt flag was set
 	if( USART_GetITStatus(USART2, USART_IT_RXNE) )
 	{
 		STM_EVAL_LEDToggle(LED5);
 		char data = USART2->DR;
 		data *= 2;
 		//Process...
+	}*/
+	if((USART_GetFlagStatus(USART2, USART_FLAG_TC) == SET) && (USART_GetITStatus (USART2, USART_IT_TXE) == SET)) //Ready to send next byte and tx interrupt active?
+	{
+		u_int8_t data;
+		if(xQueueReceiveFromISR(xQueueTXUSART2, &data, &usart2tx_ISRnewDat)) //Send byte from Queue if available
+			USART_SendData(USART2, data);
+		else
+			USART_ITConfig(USART2, USART_IT_TXE, DISABLE); //otherwise disable tx interrupt
 	}
 }
 
@@ -170,7 +170,7 @@ void pcui_sendMap(slam_t *slam)
 		mpd[11] = ((int16_t)slam->robot_pos.psi & 0xff);
 		mpd[12] = ((int16_t)slam->robot_pos.psi & 0xff00) >> 8;
 
-		//out_puts_l(&slamUI, "\e[0m", 5); //VT100: clear all colorsettings
+		out_puts_l(&slamUI, "\e[0m", 5); //VT100: clear all colorsettings
 		pcui_sendMsg((char *)"MPD", 13, mpd); //Send mapdata
 
 		sm_sendMap = 1;
@@ -189,7 +189,6 @@ void pcui_sendMap(slam_t *slam)
 		for(int i = 0; i < (MAP_SIZE_X_MM / MAP_RESOLUTION_MM); i++) //Map information itself beginning in byte 3
 			buf[i + 3] = slam->map.px[i][sendMap_y][sendMap_z];
 
-		//out_puts_l(&slamUI, "\e[0m", 5); //VT100: clear all colorsettings
 		pcui_sendMsg((char *)"MAP", (MAP_SIZE_X_MM / MAP_RESOLUTION_MM) + 3, buf); //Send line
 
 		sendMap_y ++;

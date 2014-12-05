@@ -38,7 +38,7 @@ SemaphoreHandle_t lidarSync; //Snychronize SLAM Task with Lidar!
 portTASK_FUNCTION( vSLAMTask, pvParameters ) {
 //	portTickType xLastWakeTime;
 
-	foutf(&debugOS, "xTask SLAM started.\r\n");
+	foutf(&debugOS, "xTask SLAM started.\n");
 
 	//xLastWakeTime = xTaskGetTickCount();
 	lidarSync = xSemaphoreCreateBinary();

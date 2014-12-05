@@ -87,7 +87,9 @@ void vUSART2_Init( void ) {
 	 * to jump to the USART2_IRQHandler() function
 	 * if the USART2 receive interrupt occurs
 	 */
-	USART_ITConfig(USART2, USART_IT_RXNE, ENABLE); // enable the USART3 receive interrupt
+	//USART_ITConfig(USART2, USART_IT_RXNE, ENABLE); // enable the USART2 receive interrupt
+
+
 
 	// Configure the NVIC Preemption Priority Bits
 	// wichtig!, sonst stimmt nichts überein mit den neuen ST Libs (ab Version 3.1.0)
@@ -95,7 +97,7 @@ void vUSART2_Init( void ) {
 	NVIC_InitStructure.NVIC_IRQChannel = USART2_IRQn;
 
 	// entspricht 11-15, 11 ist das höchst mögliche, sonst gibt es Probleme mit dem OS
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;//(configMAX_SYSCALL_INTERRUPT_PRIORITY >> 4) + 1;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = (configMAX_SYSCALL_INTERRUPT_PRIORITY >> 4) + 1;
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init( &NVIC_InitStructure );

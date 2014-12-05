@@ -78,7 +78,6 @@ portTASK_FUNCTION_PROTO( vDebugTask, pvParameters );
 u_int32_t systemTick=0;      // Counts OS ticks (default = 1000Hz).
 u_int32_t u64IdleTicks=0;    // Value of u64IdleTicksCnt is copied once per sec.
 u_int32_t u64IdleTicksCnt=0; // Counts when the OS has no task to execute.
-u_int16_t u16PWM1=0;
 
 battstate_t battery;
 
@@ -87,6 +86,7 @@ int main( void )
 {
 	//HwInit();
 	out_init();
+		out_onOff(&slamUI, 0); //Unactivate SLAMUI Stream
 	LCD_ResetDevice();
 	UB_Touch_Init();
 	comm_init();
@@ -108,6 +108,8 @@ int main( void )
 	STM_EVAL_LEDInit(LED6); STM_EVAL_LEDOff(LED4);
 
 	// Tasks get started here...
+	xTaskCreate( vDebugTask, "DEBUG",		1024,
+			NULL, mainGUI_TASK_PRIORITY, &hDebugTask );
 	xTaskCreate( vTimeTask, "TIME",			1024,
 			NULL, mainTIME_TASK_PRIORITY, &hTimeTask );
 	xTaskCreate( vDRIVETask, "DRIVE",		1024,
@@ -118,8 +120,6 @@ int main( void )
 			NULL, mainGUI_TASK_PRIORITY, &hGUITask );
 	xTaskCreate( vLIDARTask, "LIDAR",		512,
 			NULL, mainLIDAR_TASK_PRIORITY, &hLIDARTask );
-	xTaskCreate( vDebugTask, "DEBUG",		1024,
-			NULL, mainGUI_TASK_PRIORITY, &hDebugTask );
 
 	LCD_ResetDevice(); //Reset display here again? Otherwise not working - only a workaround! Still worked at last commit...
 
@@ -149,7 +149,6 @@ portTASK_FUNCTION( vTimeTask, pvParameters ) {
 
 		ub_touch_handler_50ms();
 
-		USART_SendData(USART2, 'a');
 		// Once per second, copy the number of idle ticks and then
 		// reset the rolling counter. Read out battery.
 		if ( ++i == 20 )
@@ -181,7 +180,7 @@ void vApplicationTickHook( void ) {
 // On a completely unloaded system this is getting called at over 2.5MHz!
 // ---------------------------------------------------------------------------- 
 void vApplicationIdleHook( void ) {
-    ++u64IdleTicksCnt;
+	++u64IdleTicksCnt;
 }
 
 // A required FreeRTOS function.

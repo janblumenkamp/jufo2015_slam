@@ -20,13 +20,13 @@
 portTASK_FUNCTION( vDRIVETask, pvParameters ) {
 	portTickType xLastWakeTime;
 
-	foutf(&debugOS, "xTask DRIVE started.\r\n");
+	foutf(&debugOS, "xTask DRIVE started.\n");
 
 	xLastWakeTime = xTaskGetTickCount();
 
 	for(;;)
 	{
-		foutf(&debugOS, "Watermark drive: %i\n", uxTaskGetStackHighWaterMark( NULL ));
+		//foutf(&debugOS, "Watermark drive: %i\n", uxTaskGetStackHighWaterMark( NULL ));
 
 		if(mapping)
 		{
