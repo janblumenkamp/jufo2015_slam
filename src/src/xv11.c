@@ -12,7 +12,7 @@
 
 #include "FreeRTOS.h"
 #include "semphr.h"
-
+#include "queue.h"
 #include "stm32f4_discovery.h"
 
 volatile XV11_t xv11;
@@ -107,7 +107,7 @@ void xv11_init(void)
 	NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
 
 	// entspricht 11-15, 11 ist das höchst mögliche, sonst gibt es Probleme mit dem OS
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 5;//(configMAX_SYSCALL_INTERRUPT_PRIORITY >> 4) + 1;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = (configMAX_SYSCALL_INTERRUPT_PRIORITY >> 4) + 1;
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init( &NVIC_InitStructure );
@@ -140,19 +140,47 @@ enum XV11_PACKAGE_DATA {
 // this is the interrupt request handler (IRQ) for ALL USART1 interrupts
 void USART1_IRQHandler(void)
 {
-	static BaseType_t slamTaskWoken = pdFALSE; //Synchronisation between SLAM Task and Lidar ISR
+	static BaseType_t lidarISRnewDat = pdFALSE;
 
 	// check if the USART1 receive interrupt flag was set
 	if( USART_GetITStatus(USART1, USART_IT_RXNE) )
 	{
-		static u_int8_t sm = INIT_SEARCHSTART;
-		static u_int16_t xv11_dist_index = 0;
-		static float xv11_speedreg_i = XV11_SPEED_IREG_INIT; //I-Regulator (speed)
-		static u_int8_t xv11_state_on_cnt = 0; //Before the state switches to "XV11_ON", the rpm has to be stable a few iterations
-		u_int32_t checksum = 0;
-		u_int8_t data = (u_int8_t)USART1->DR; // the character from the USART1 data register is saved in data
+		char data = USART1->DR; // the character from the USART1 data register is saved in data
+		xQueueSendToBackFromISR(xQueueLidar, &data, &lidarISRnewDat);
+	}
+	portEND_SWITCHING_ISR(lidarISRnewDat);
+}
 
-		static u_int8_t xv11_package[XV11_PACKAGE_LENGTH];
+// Task for processing the lidar data
+// ----------------------------------------------------------------------------
+
+QueueHandle_t xQueueLidar;
+
+portTASK_FUNCTION( vLIDARTask, pvParameters ) {
+
+	//portTickType xLastWakeTime;
+	//xLastWakeTime = xTaskGetTickCount();
+
+	foutf(&debugOS, "xTask LIDAR started.\n");
+
+    xQueueLidar = xQueueCreate( 50, sizeof(char));
+    if( xQueueLidar == 0 )
+    	foutf(&error, "xQueueLidar COULD NOT BE CREATED!\n");
+
+    static BaseType_t syncLidarSLAM = pdFALSE; //Synchronisation between SLAM Task and Lidar ISR
+
+    char data;
+    u_int8_t sm = INIT_SEARCHSTART;
+	u_int16_t xv11_dist_index = 0;
+	float xv11_speedreg_i = XV11_SPEED_IREG_INIT; //I-Regulator (speed)
+	u_int8_t xv11_state_on_cnt = 0; //Before the state switches to "XV11_ON", the rpm has to be stable a few iterations
+	u_int32_t checksum = 0;
+
+	u_int8_t xv11_package[XV11_PACKAGE_LENGTH];
+
+    for(;;)
+	{
+		xQueueReceive(xQueueLidar, &data, portMAX_DELAY); //Blocks until new data arrive
 
 		//XV-11 Lidar Protocol: (https://github.com/Xevel/NXV11/wiki)
 		//<start byte (FA) [1]> <index[1]> <speed[2]> <Data 0[4]> <Data 1[4]> <Data 2[4]> <Data 3[4]> <checksum[2]>
@@ -167,7 +195,7 @@ void USART1_IRQHandler(void)
 			if(xv11.state == XV11_STARTING)
 				sm = INIT_SEARCHSTART;
 			break;
-		case INIT_SEARCHSTART: //Find start byte of protocoll
+		case INIT_SEARCHSTART: //Find start byte of protocol
 
 			UB_PWM_TIM3_SetPWM(PWM_T3_PB5, XV11_SPEED_PWM_INIT); //make sure motor is spinning
 
@@ -208,7 +236,7 @@ void USART1_IRQHandler(void)
 					xv11.speed = (xv11_package[SPEED_LSB] | (xv11_package[SPEED_MSB] << 8)) / 64.0;
 
 					//if(xv11_dist_index == 0) //Synchronization var with the slam algorithm
-					//	xSemaphoreGiveFromISR( lidarSync, &slamTaskWoken );
+					//	xSemaphoreGiveFromISR( lidarSync, &syncLidarSLAM );
 
 					for(u8 i = 0; i < 4; i++)
 					{
@@ -241,9 +269,9 @@ void USART1_IRQHandler(void)
 				}
 				else //checksum does not match
 				{
-					for(u8 i = 4; i < 8; i++)
+					for(u_int8_t i = 4; i < 8; i++)
 					{
-						xv11.dist_polar[xv11_dist_index + i] = XV11_VAR_NODATA; //clear the distance information of the package with the false checksum
+						//xv11.dist_polar[xv11_dist_index + i] = XV11_VAR_NODATA; //clear the distance information of the package with the false checksum
 					}
 					xv11_dist_index += 4; //In case the next package is also false and this var can’t set new, go to the next package index
 					if(xv11_dist_index > 359)
@@ -258,24 +286,6 @@ void USART1_IRQHandler(void)
 		default:
 			break;
 		}
-	}
-	//portEND_SWITCHING_ISR(slamTaskWoken);
-}
-
-// Task for processing the lidar data
-// ----------------------------------------------------------------------------
-
-portTASK_FUNCTION( vLIDARTask, pvParameters ) {
-    portTickType xLastWakeTime;
-    uint8_t i=0;
-
-	foutf(&debugOS, "xTask LIDAR started.\r\n");
-
-    xLastWakeTime = xTaskGetTickCount();
-
-	for(;;)
-	{
-
-		vTaskDelayUntil( &xLastWakeTime, ( 50 / portTICK_RATE_MS ) );
+		//vTaskDelayUntil( &xLastWakeTime, ( 50 / portTICK_RATE_MS ) );
     }
 }

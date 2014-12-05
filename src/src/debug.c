@@ -53,16 +53,22 @@
 #include "comm.h"
 #include "xv11.h"
 
+QueueHandle_t xQueueTXUSART2;
+
 // ============================================================================
 portTASK_FUNCTION( vDebugTask, pvParameters ) {
-	portTickType xLastWakeTime;
+	//portTickType xLastWakeTime;
 	//portBASE_TYPE xStatus;
 	//UBaseType_t uxHighWaterMark;
 
 	/* The parameters are not used. */
 	( void ) pvParameters;
 
-	xLastWakeTime = xTaskGetTickCount();
+	//xLastWakeTime = xTaskGetTickCount();
+
+	xQueueTXUSART2 = xQueueCreate( 1000, sizeof(char));
+	if( xQueueTXUSART2 == 0 )
+		foutf(&error, "xQueueTXUSART2 COULD NOT BE CREATED!\n");
 
 	foutf(&debugOS, (const char *)"xTask DEBUG started.\n");
 
@@ -70,10 +76,15 @@ portTASK_FUNCTION( vDebugTask, pvParameters ) {
 	{
 		foutf(&debugOS, "Watermark debug: %i\n", uxTaskGetStackHighWaterMark( NULL ));
 
-		if(slamUI.active)
-			pcui_sendMap(&slam);
+		//if(slamUI.active)
+		//	pcui_sendMap(&slam);
 
-		vTaskDelayUntil( &xLastWakeTime, ( 20 / portTICK_RATE_MS ) );
+		char data;
+		if(xQueueReceive(xQueueLidar, &data, (TickType_t)20)) //Blocks until new data arrive
+		{
+			USART_SendData(USART2, (uint8_t) data);
+			while (USART_GetFlagStatus(USART2, USART_FLAG_TC) == RESET); // Loop until the end of transmission
+		}
 	}
 }
 
@@ -205,28 +216,28 @@ void pcui_sendMap(slam_t *slam)
 void vDebugPrintResetType( void ) {
 
 	if ( PWR_GetFlagStatus( PWR_FLAG_WU ) )
-		foutf(&debugOS, "PWR: Wake Up flag\r\n" );
+		foutf(&debugOS, "PWR: Wake Up flag\n" );
 	if ( PWR_GetFlagStatus( PWR_FLAG_SB ) )
-		foutf(&debugOS, "PWR: StandBy flag.\r\n" );
+		foutf(&debugOS, "PWR: StandBy flag.\n" );
 	if ( PWR_GetFlagStatus( PWR_FLAG_PVDO ) )
-		foutf(&debugOS, "PWR: PVD Output.\r\n" );
+		foutf(&debugOS, "PWR: PVD Output.\n" );
 	if ( PWR_GetFlagStatus( PWR_FLAG_BRR ) )
-		foutf(&debugOS, "PWR: Backup regulator ready flag.\r\n" );
+		foutf(&debugOS, "PWR: Backup regulator ready flag.\n" );
 	if ( PWR_GetFlagStatus( PWR_FLAG_REGRDY ) )
-		foutf(&debugOS, "PWR: Main regulator ready flag.\r\n" );
+		foutf(&debugOS, "PWR: Main regulator ready flag.\n" );
 
 	if ( RCC_GetFlagStatus( RCC_FLAG_BORRST ) )
-		foutf(&debugOS, "RCC: POR/PDR or BOR reset\r\n" );
+		foutf(&debugOS, "RCC: POR/PDR or BOR reset\n" );
 	if ( RCC_GetFlagStatus( RCC_FLAG_PINRST ) )
-		foutf(&debugOS, "RCC: Pin reset.\r\n" );
+		foutf(&debugOS, "RCC: Pin reset.\n" );
 	if ( RCC_GetFlagStatus( RCC_FLAG_PORRST ) )
-		foutf(&debugOS, "RCC: POR/PDR reset.\r\n" );
+		foutf(&debugOS, "RCC: POR/PDR reset.\n" );
 	if ( RCC_GetFlagStatus( RCC_FLAG_SFTRST ) )
-		foutf(&debugOS, "RCC: Software reset.\r\n" );
+		foutf(&debugOS, "RCC: Software reset.\n" );
 	if ( RCC_GetFlagStatus( RCC_FLAG_IWDGRST ) )
-		foutf(&debugOS, "RCC: Independent Watchdog reset.\r\n" );
+		foutf(&debugOS, "RCC: Independent Watchdog reset.\n" );
 	if ( RCC_GetFlagStatus( RCC_FLAG_WWDGRST ) )
-		foutf(&debugOS, "RCC: Window Watchdog reset.\r\n" );
+		foutf(&debugOS, "RCC: Window Watchdog reset.\n" );
 	if ( RCC_GetFlagStatus( RCC_FLAG_LPWRRST ) )
-		foutf(&debugOS, "RCC: Low Power reset.\r\n" );
+		foutf(&debugOS, "RCC: Low Power reset.\n" );
 }

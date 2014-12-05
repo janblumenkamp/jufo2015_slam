@@ -53,11 +53,11 @@
 #include "stm32_ub_pwm_tim3.h"
 
 // Task priorities: Higher numbers are higher priority.
-#define mainTIME_TASK_PRIORITY      ( tskIDLE_PRIORITY + 6 )
-#define mainDRIVE_TASK_PRIORITY       ( tskIDLE_PRIORITY + 5 )
-#define mainSLAM_TASK_PRIORITY       ( tskIDLE_PRIORITY + 4 )
+#define mainTIME_TASK_PRIORITY      ( tskIDLE_PRIORITY + 4 )
 #define mainLIDAR_TASK_PRIORITY       ( tskIDLE_PRIORITY + 3 )
-#define mainGUI_TASK_PRIORITY       ( tskIDLE_PRIORITY + 2 )
+#define mainDRIVE_TASK_PRIORITY       ( tskIDLE_PRIORITY + 2 )
+#define mainSLAM_TASK_PRIORITY       ( tskIDLE_PRIORITY + 2 )
+#define mainGUI_TASK_PRIORITY       ( tskIDLE_PRIORITY + 1 )
 #define mainDEBUG_TASK_PRIORITY     ( tskIDLE_PRIORITY + 1 )
 #define mainINTEGER_TASK_PRIORITY   ( tskIDLE_PRIORITY )
 
@@ -75,7 +75,7 @@ portTASK_FUNCTION_PROTO( vLIDARTask, pvParameters );
 portTASK_FUNCTION_PROTO( vGUITask, pvParameters );
 portTASK_FUNCTION_PROTO( vDebugTask, pvParameters );
 
-u_int32_t systemTick=0;        // Counts OS ticks (default = 1000Hz).
+u_int32_t systemTick=0;      // Counts OS ticks (default = 1000Hz).
 u_int32_t u64IdleTicks=0;    // Value of u64IdleTicksCnt is copied once per sec.
 u_int32_t u64IdleTicksCnt=0; // Counts when the OS has no task to execute.
 u_int16_t u16PWM1=0;
@@ -95,14 +95,13 @@ int main( void )
 	xv11_init();
 
 	foutf(&debugOS, "\r\n\n\n\n\n\n\n\n");
-	foutf(&debugOS, "–––––––––––––––––––––––\r\n");
-	foutf(&debugOS, "| FreeRTOS v8.0.0 RC2 |\r\n");
-	foutf(&debugOS, "–––––––––––––––––––––––\r\n");
-	foutf(&debugOS, "Jugend Forscht 2015 v1.0\r\n");
+	foutf(&debugOS, "–––––––––––––––––––––––\n");
+	foutf(&debugOS, "| FreeRTOS v8.0.0 RC2 |\n");
+	foutf(&debugOS, "–––––––––––––––––––––––\n");
+	foutf(&debugOS, "Jugend Forscht 2015 v1.0\n");
 	vDebugPrintResetType();
 
-
-	/* Initialize Leds mounted on STM32F4-Discovery board */
+	/* Initialize LEDs mounted on STM32F4-Discovery board */
 	STM_EVAL_LEDInit(LED3); STM_EVAL_LEDOff(LED3);
 	STM_EVAL_LEDInit(LED4); STM_EVAL_LEDOff(LED4);
 	STM_EVAL_LEDInit(LED5); STM_EVAL_LEDOff(LED5);
@@ -116,10 +115,10 @@ int main( void )
 	xTaskCreate( vSLAMTask, "SLAM",			1024,
 			NULL, mainSLAM_TASK_PRIORITY, &hSLAMTask );
 	xTaskCreate( vGUITask, "GUI",			512,
-				NULL, mainGUI_TASK_PRIORITY, &hGUITask );
-	xTaskCreate( vLIDARTask, "LIDAR",			512,
-				NULL, mainLIDAR_TASK_PRIORITY, &hLIDARTask );
-		xTaskCreate( vDebugTask, "DEBUG",		512,
+			NULL, mainGUI_TASK_PRIORITY, &hGUITask );
+	xTaskCreate( vLIDARTask, "LIDAR",		512,
+			NULL, mainLIDAR_TASK_PRIORITY, &hLIDARTask );
+	xTaskCreate( vDebugTask, "DEBUG",		1024,
 			NULL, mainGUI_TASK_PRIORITY, &hDebugTask );
 
 	LCD_ResetDevice(); //Reset display here again? Otherwise not working - only a workaround! Still worked at last commit...
@@ -140,7 +139,7 @@ portTASK_FUNCTION( vTimeTask, pvParameters ) {
     portTickType xLastWakeTime;
     uint8_t i=0;
 
-	foutf(&debugOS, "xTask TIME started.\r\n");
+	foutf(&debugOS, "xTask TIME started.\n");
 
     xLastWakeTime = xTaskGetTickCount();
 
@@ -150,17 +149,18 @@ portTASK_FUNCTION( vTimeTask, pvParameters ) {
 
 		ub_touch_handler_50ms();
 
+		USART_SendData(USART2, 'a');
 		// Once per second, copy the number of idle ticks and then
 		// reset the rolling counter. Read out battery.
 		if ( ++i == 20 )
 		{
 			comm_readBattData(&battery); //Reads battery data from base
 
-			/*if(!statusbar_battWarningSent && battery.percent < 20)
+			if(!statusbar_battWarningSent && battery.percent < 20)
 			{
 				statusbar_battWarningSent = 1;
 				statusbar_addMessage((char *) "Battery warning!", LCD_COLOR_YELLOW);
-			}*/
+			}
 
 			i = 0;
             u64IdleTicks = u64IdleTicksCnt;

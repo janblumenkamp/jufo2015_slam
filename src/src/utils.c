@@ -95,7 +95,7 @@ void vUSART2_Init( void ) {
 	NVIC_InitStructure.NVIC_IRQChannel = USART2_IRQn;
 
 	// entspricht 11-15, 11 ist das höchst mögliche, sonst gibt es Probleme mit dem OS
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = (configMAX_SYSCALL_INTERRUPT_PRIORITY >> 4) + 1;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;//(configMAX_SYSCALL_INTERRUPT_PRIORITY >> 4) + 1;
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init( &NVIC_InitStructure );

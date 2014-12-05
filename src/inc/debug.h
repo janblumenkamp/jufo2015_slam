@@ -10,6 +10,9 @@
 
 #include "main.h"
 #include "slamdefs.h"
+#include "queue.h"
+
+extern QueueHandle_t xQueueTXUSART2;
 
 extern void pcui_sendMsg(char *id, u_int32_t length, char *msg);
 

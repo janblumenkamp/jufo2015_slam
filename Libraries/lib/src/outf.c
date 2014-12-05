@@ -11,17 +11,31 @@
 #include "stm32f4xx_conf.h"
 #include <stdarg.h>
 #include "outf.h"
+#include "debug.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
 #include "stm32f4xx_conf.h"
-
+#include "queue.h"
 
 stream_t slamUI;
 stream_t debug;
 stream_t debugOS;
 stream_t error;
 
+//Puts a character to the output queue, which (later) transmit its through the transmit isr. Fast, only for much data/debugging
+int8_t usart2queue_put(char c)
+{
+	/*USART_SendData(USART2, (uint8_t) c);
+	// Loop until the end of transmission
+	while (USART_GetFlagStatus(USART2, USART_FLAG_TC) == RESET);*/
+	//static BaseType_t usart2putted = pdFALSE;
+	//xQueueSendToBack(xQueueTXUSART2, &c, 0);
+
+	return c;
+}
+
+//Puts a character directly to the usart (slow, but not basing on queues or interrupts)
 int8_t usart2_put(char c)
 {
 	USART_SendData(USART2, (uint8_t) c);
@@ -58,7 +72,7 @@ void out_init(void)
 	slamUI.active = 0;
 	slamUI.bgcolor = 0;
 	slamUI.textcolor = 0;
-	slamUI.put_c = &usart2_put;
+	slamUI.put_c = &usart2queue_put;
 
 	debug.active = 1;
 	debug.bgcolor = 42; //green
@@ -68,12 +82,12 @@ void out_init(void)
 	debugOS.active = 1;
 	debugOS.bgcolor = 43; //Yellow
 	debugOS.textcolor = 30; //black
-	debugOS.put_c = &usart2_put;
+	debugOS.put_c = &usart2queue_put;
 
 	error.active = 1;
 	error.bgcolor = 41; //red
 	error.textcolor = 30; //black
-	error.put_c = &usart2_put;
+	error.put_c = &usart2queue_put;
 }
 
 

@@ -2,6 +2,7 @@
 #include "slam.h"
 #include "slamdefs.h"
 #include "main.h"
+#include "queue.h"
 
 #ifndef XV11_H
 #define XV11_H
@@ -34,6 +35,8 @@ typedef struct {
 } XV11_t;
 
 extern volatile XV11_t xv11;
+
+extern QueueHandle_t xQueueLidar;
 
 extern int8_t xv11_state(u8 state);
 
