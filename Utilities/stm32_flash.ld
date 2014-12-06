@@ -140,6 +140,15 @@ SECTIONS
     __bss_end__ = _ebss;
   } >RAM
 
+	.ccm (NOLOAD) :
+	{
+		. = ALIGN(4);
+		*(.ccm)
+		*(.ccm.*)
+		. = ALIGN(4);
+	} >CCM
+
+
   /* User_heap_stack section, used to check that there is enough RAM left */
   ._user_heap_stack :
   {

@@ -27,7 +27,7 @@
 #define MAP_SIZE_X_MM			3000
 #define MAP_SIZE_Y_MM			3000
 #define MAP_SIZE_Z_LAYERS		1		//Amount of layers of the map
-#define MAP_RESOLUTION_MM		15
+#define MAP_RESOLUTION_MM		10
 #define MAP_NAVRESOLUTION_FAC	3 //Resolution of navigation cells in MAP_RESOLUTION_MM * MAP_NAVRESOLUTION_FAC mm (on each navresolution cell there come MAP_NAVRESOLUTION_FAC^2 MAP_SIZE_X_MM / MAP_RESOLUTION_MM cells)
 
 #define MAP_VAR_MAX			255 //Overflow of map pixel
