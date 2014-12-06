@@ -143,6 +143,8 @@ portTASK_FUNCTION( vTimeTask, pvParameters ) {
 
     xLastWakeTime = xTaskGetTickCount();
 
+	u_int8_t data = 0;
+
 	for(;;)
 	{
 		STM_EVAL_LEDToggle(LED3);

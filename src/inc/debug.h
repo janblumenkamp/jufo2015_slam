@@ -18,7 +18,9 @@ extern void pcui_sendMsg(char *id, u_int32_t length, char *msg);
 
 extern void pcui_sendMap(slam_t *slam);
 
-extern void vDebugPrintResetType( void );
+extern void vDebugPrintResetType(void);
+
+void vUSART2_Init(void);
 
 
 #endif /* DEBUG_H_ */

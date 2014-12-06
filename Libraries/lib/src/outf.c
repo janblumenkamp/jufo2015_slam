@@ -23,6 +23,17 @@ stream_t debug;
 stream_t debugOS;
 stream_t error;
 
+
+//Puts a character directly to the usart (slow, but not basing on queues or interrupts)
+int8_t usart2_put(char c)
+{
+	USART_SendData(USART2, (uint8_t) c);
+	// Loop until the end of transmission
+	while (USART_GetFlagStatus(USART2, USART_FLAG_TC) == RESET);
+
+	return c;
+}
+
 //Puts a character to the output queue, which (later) transmit its through the transmit isr. Fast, only for much data/debugging
 int8_t usart2queue_put_spaceErrSent = 0;
 int8_t usart2queue_put_NULLErrSent = 0;
@@ -41,25 +52,19 @@ int8_t usart2queue_put(char c)
 		else if(!usart2queue_put_spaceErrSent)
 		{
 			usart2queue_put_spaceErrSent = 1;
-			foutf(&error, "txerr: Queue_SPACE\n");
+			foutf(&error, "txerr: Queue_SPACE");
 		}
 	}
 	else if(!usart2queue_put_NULLErrSent)
 	{
 		usart2queue_put_NULLErrSent = 1;
-		foutf(&error, "txerr: Queue_NULL\n");
+		foutf(&error, "txerr: Queue_NULL");
 	}
 
-	return c;
-}
-
-//Puts a character directly to the usart (slow, but not basing on queues or interrupts)
-int8_t usart2_put(char c)
-{
-	USART_SendData(USART2, (uint8_t) c);
-	// Loop until the end of transmission
-	while (USART_GetFlagStatus(USART2, USART_FLAG_TC) == RESET);
-
+	if(usart2queue_put_NULLErrSent || usart2queue_put_spaceErrSent) //Instead, put character directly.
+	{
+		usart2_put(c);
+	}
 	return c;
 }
 
@@ -93,18 +98,18 @@ void out_init(void)
 	slamUI.put_c = &usart2queue_put;
 
 	debug.active = 1;
-	debug.bgcolor = 42; //green
-	debug.textcolor = 30; //black
+	debug.bgcolor = 0;//42; //green
+	debug.textcolor = 0;//30; //black
 	debug.put_c = &usart2queue_put;
 
 	debugOS.active = 1;
-	debugOS.bgcolor = 43; //Yellow
-	debugOS.textcolor = 30; //black
+	debugOS.bgcolor = 0;//43; //Yellow
+	debugOS.textcolor = 0;//30; //black
 	debugOS.put_c = &usart2_put;
 
 	error.active = 1;
-	error.bgcolor = 41; //red
-	error.textcolor = 30; //black
+	error.bgcolor = 0;//41; //red
+	error.textcolor = 0;//30; //black
 	error.put_c = &usart2_put;
 }
 

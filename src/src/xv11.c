@@ -128,7 +128,7 @@ enum SM_XV11 {
 };
 
 enum XV11_PACKAGE_DATA {
-	STARTBYTE, INDEX,
+	STARTBYTE = 0, INDEX,
 	SPEED_LSB, SPEED_MSB,
 	D0_B0, D0_B1, D0_B2, D0_B3,
 	D1_B0, D1_B1, D1_B2, D1_B3,
@@ -157,6 +157,8 @@ void USART1_IRQHandler(void)
 
 QueueHandle_t xQueueLidar;
 
+//static u_int8_t sm = INIT_SEARCHSTART;
+
 portTASK_FUNCTION( vLIDARTask, pvParameters ) {
 
 	portTickType xLastWakeTime;
@@ -164,12 +166,12 @@ portTASK_FUNCTION( vLIDARTask, pvParameters ) {
 
 	foutf(&debugOS, "xTask LIDAR started.\n");
 
-	xQueueLidar = xQueueCreate( 50, sizeof(u_int8_t));
+	xQueueLidar = xQueueCreate( 100, sizeof(u_int8_t));
     if( xQueueLidar == 0 )
     	foutf(&error, "xQueueLidar COULD NOT BE CREATED!\n");
 
-	u_int8_t data;
 	u_int8_t sm = INIT_SEARCHSTART;
+	u_int8_t data;
 	u_int16_t xv11_dist_index = 0;
 	float xv11_speedreg_i = XV11_SPEED_IREG_INIT; //I-Regulator (speed)
 	u_int8_t xv11_state_on_cnt = 0; //Before the state switches to "XV11_ON", the rpm has to be stable a few iterations
@@ -177,15 +179,10 @@ portTASK_FUNCTION( vLIDARTask, pvParameters ) {
 
 	u_int8_t xv11_package[XV11_PACKAGE_LENGTH];
 
-	u8 sm_l = 0xff;
-
 	for(;;)
 	{
 		if(xQueueLidar != 0)
 			xQueueReceive(xQueueLidar, &data, portMAX_DELAY); //Blocks until new data arrive
-
-		//XV-11 Lidar Protocol: (https://github.com/Xevel/NXV11/wiki)
-		//<start byte (FA) [1]> <index[1]> <speed[2]> <Data 0[4]> <Data 1[4]> <Data 2[4]> <Data 3[4]> <checksum[2]>
 
 		if(xv11.state == XV11_OFF)
 			sm = OFF;
@@ -232,21 +229,27 @@ portTASK_FUNCTION( vLIDARTask, pvParameters ) {
 				checksum = (checksum & 0x7FFF) + (checksum >> 15);
 				checksum &= 0x7FFF;
 
-				if(checksum == (xv11_package[CHK_LSB] + (xv11_package[CHK_MSB] << 8))) //checksum matches
+				/*for(u8 i = 0; i < XV11_PACKAGE_LENGTH; i++)
 				{
+					foutf(&debugOS, "%i ", xv11_package[i]);
+				}
+				foutf(&debugOS, "\n");*/
+
+				//if(checksum == (xv11_package[CHK_LSB] + (xv11_package[CHK_MSB] << 8))) //checksum matches
+				//{
 					xv11_dist_index = (xv11_package[INDEX] - 0xA0) * 4;
 					xv11.speed = (xv11_package[SPEED_LSB] | (xv11_package[SPEED_MSB] << 8)) / 64.0;
 
-					//if(xv11_dist_index == 0) //Synchronization var with the slam algorithm
-					//	xSemaphoreGive(lidarSync);
+					if(xv11_dist_index == 0) //Synchronization var with the slam algorithm
+						xSemaphoreGive(lidarSync);
 
-	/*				for(u8 i = 0; i < 4; i++)
+					for(u8 i = 0; i < 4; i++)
 					{
 						xv11.dist_polar[xv11_dist_index + i] = xv11_package[D0_B0 + (i * 4)] + ((xv11_package[D0_B1 + (i * 4)] & 0x3F) << 8);
 						if((xv11_package[D0_B1 + (i * 4)] & 0x80) || (xv11_package[D0_B1 + (i * 4)] & 0x40)) //invalid data flag
 							xv11.dist_polar[xv11_dist_index + i] = XV11_VAR_NODATA;
 					}
-*/
+
 					xv11_speedreg_i += ((XV11_SPEED_RPM_TO - xv11.speed) / XV11_SPEED_DIV_I);
 					if(xv11_speedreg_i > 255.0) //8bit PWM
 						xv11_speedreg_i = 255.0;
@@ -268,19 +271,19 @@ portTASK_FUNCTION( vLIDARTask, pvParameters ) {
 						if(xv11_state_on_cnt > XV11_STATE_ON_CNT)
 							xv11.state = XV11_ON;
 					}
-				}
+			/*	}
 				else //checksum does not match
 				{
-		/*			for(u_int8_t i = 4; i < 8; i++)
+					for(u_int8_t i = 4; i < 8; i++)
 					{
 						xv11.dist_polar[xv11_dist_index + i] = XV11_VAR_NODATA; //clear the distance information of the package with the false checksum
 					}
-*/
+
 					xv11_dist_index += 4; //In case the next package is also false and this var can’t set new, go to the next package index
 					if(xv11_dist_index > 359)
 						xv11_dist_index = 0;
 					sm = INIT_SEARCHSTART;
-				}
+				}*/
 
 				sm = GETPACKAGE;
 			}
