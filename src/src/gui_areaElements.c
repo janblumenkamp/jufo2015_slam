@@ -166,27 +166,33 @@ void gui_drawAREAmap(GUI_ELEMENT *element)
 {
 	if(element->state != GUI_EL_INVISIBLE)
 	{
+		float scale;
+		if(MAP_SIZE_Y_MM > MAP_SIZE_X_MM) //Calculate scale of the actual map and the displayed map
+			scale = ((MAP_SIZE_Y_MM / MAP_RESOLUTION_MM) / MAP_DRAW_HEIGHT);
+		else
+			scale = ((MAP_SIZE_X_MM / MAP_RESOLUTION_MM) / MAP_DRAW_WIDTH);
+
 		LCD_SetClipRgn(element->x, element->y, element->x + element->length, element->y + element->heigth);
 		LCD_Rectangle(element->x, element->y, element->x + element->length, element->y + element->heigth, LCD_COLOR_BLACK, 0);
 
 		if(processedView)
 			slam_LCD_DispMapProcessed(element->x + 1, element->y + 1, &slam); //Not nessesary to clear area (it is overwritten)
 		else
-			slam_LCD_DispMap(element->x + 1, element->y + 1, &slam); //Not nessesary to clear area (it is overwritten)
+			slam_LCD_DispMap(element->x + 1, element->y + 1, scale, &slam); //Not nessesary to clear area (it is overwritten)
 
 
-		LCD_Line(element->x + (slam.robot_pos.coord.x / MAP_RESOLUTION_MM),
-				 element->y + (MAP_SIZE_Y_MM - slam.robot_pos.coord.y) / MAP_RESOLUTION_MM,
-				 element->x + (slam.robot_pos.coord.x / MAP_RESOLUTION_MM) + 10 * sinf((70 + slam.robot_pos.psi) * (M_PI / 180)),
-				 element->y + (MAP_SIZE_Y_MM - slam.robot_pos.coord.y) / MAP_RESOLUTION_MM - 10 * cosf((70 + slam.robot_pos.psi) * (M_PI / 180)),
+		LCD_Line(element->x + (int)((slam.robot_pos.coord.x / MAP_RESOLUTION_MM) / scale),
+				 element->y + (int)((MAP_SIZE_Y_MM - slam.robot_pos.coord.y) / MAP_RESOLUTION_MM / scale),
+				 element->x + (int)((slam.robot_pos.coord.x / MAP_RESOLUTION_MM) / scale) + 10 * sinf((70 + slam.robot_pos.psi) * (M_PI / 180)),
+				 element->y + (int)((MAP_SIZE_Y_MM - slam.robot_pos.coord.y) / MAP_RESOLUTION_MM / scale) - 10 * cosf((70 + slam.robot_pos.psi) * (M_PI / 180)),
 				 LCD_COLOR_RED);
-		LCD_Line(element->x + (slam.robot_pos.coord.x / MAP_RESOLUTION_MM),
-				 element->y + (MAP_SIZE_Y_MM - slam.robot_pos.coord.y) / MAP_RESOLUTION_MM,
-				 element->x + (slam.robot_pos.coord.x / MAP_RESOLUTION_MM) + 10 * sinf((110 + slam.robot_pos.psi) * (M_PI / 180)),
-				 element->y + (MAP_SIZE_Y_MM - slam.robot_pos.coord.y) / MAP_RESOLUTION_MM - 10 * cosf((110 + slam.robot_pos.psi) * (M_PI / 180)),
+		LCD_Line(element->x + (int)((slam.robot_pos.coord.x / MAP_RESOLUTION_MM) / scale),
+				 element->y + (int)((MAP_SIZE_Y_MM - slam.robot_pos.coord.y) / MAP_RESOLUTION_MM / scale),
+				 element->x + (int)((slam.robot_pos.coord.x / MAP_RESOLUTION_MM) / scale) + 10 * sinf((110 + slam.robot_pos.psi) * (M_PI / 180)),
+				 element->y + (int)((MAP_SIZE_Y_MM - slam.robot_pos.coord.y) / MAP_RESOLUTION_MM / scale) - 10 * cosf((110 + slam.robot_pos.psi) * (M_PI / 180)),
 				 LCD_COLOR_RED);
 
-		for(uint8_t i = 0; i <= MAP_SIZE_X_MM/200; i ++) //Scale
+		/*for(uint8_t i = 0; i <= MAP_SIZE_X_MM/200; i ++) //Scale
 		{
 			LCD_Line(element->x + 1 + (i * 20),
 					 element->y + element->heigth,
@@ -201,7 +207,7 @@ void gui_drawAREAmap(GUI_ELEMENT *element)
 					 element->x + 207,
 					 element->y + 1 + (i * 20),
 					 GUI_COLOR_FONT);
-		}
+		}*/
 
 		if(show_scan)
 		{
@@ -229,13 +235,13 @@ void gui_drawAREAmap(GUI_ELEMENT *element)
 		{
 			int16_t line_x1, line_y1, line_x2, line_y2;
 
-			line_x2 = element->x + (ptrWp->x / MAP_RESOLUTION_MM);
-			line_y2 = element->y + ((MAP_SIZE_Y_MM - ptrWp->y) / MAP_RESOLUTION_MM);
+			line_x2 = element->x + ((ptrWp->x / MAP_RESOLUTION_MM) / scale);
+			line_y2 = element->y + (((MAP_SIZE_Y_MM - ptrWp->y) / MAP_RESOLUTION_MM)) / scale;
 
 			if(ptrWp->previous != NULL)
 			{
-				line_x1 = element->x + (ptrWp->previous->x / MAP_RESOLUTION_MM);
-				line_y1 = element->y + ((MAP_SIZE_Y_MM - ptrWp->previous->y) / MAP_RESOLUTION_MM);
+				line_x1 = element->x + ((ptrWp->previous->x / MAP_RESOLUTION_MM) / scale);
+				line_y1 = element->y + (((MAP_SIZE_Y_MM - ptrWp->previous->y) / MAP_RESOLUTION_MM) / scale);
 
 				LCD_Line(line_x1, line_y1,
 						 line_x2, line_y2, LCD_COLOR_BRIGHTBLUE);

@@ -272,19 +272,25 @@ void gui_el_event_area_map(ELEMENT_EVENT *event)
 	}
 	else if(event->clicked)
 	{
+		float scale;
+		if(MAP_SIZE_Y_MM > MAP_SIZE_X_MM) //Calculate scale of the actual map and the displayed map
+			scale = ((MAP_SIZE_Y_MM / MAP_RESOLUTION_MM) / MAP_DRAW_HEIGHT);
+		else
+			scale = ((MAP_SIZE_X_MM / MAP_RESOLUTION_MM) / MAP_DRAW_WIDTH);
+
 		if(setWaypoints)
 		{
 			nav_waypoint_t wp;
 
-			wp.x = (Touch_Data.pos.xp - gui_element[GUI_EL_AREA_MAP].x) * MAP_RESOLUTION_MM;
-			wp.y = MAP_SIZE_Y_MM - (Touch_Data.pos.yp - gui_element[GUI_EL_AREA_MAP].y) * MAP_RESOLUTION_MM;
+			wp.x = (Touch_Data.pos.xp - gui_element[GUI_EL_AREA_MAP].x) * MAP_RESOLUTION_MM * scale;
+			wp.y = MAP_SIZE_Y_MM - (Touch_Data.pos.yp - gui_element[GUI_EL_AREA_MAP].y) * scale * MAP_RESOLUTION_MM;
 
 			nav_attachWaypoint(&wp);
 		}
 		else
 		{
-			slam.robot_pos.coord.x = (Touch_Data.pos.xp - gui_element[GUI_EL_AREA_MAP].x) * MAP_RESOLUTION_MM;
-			slam.robot_pos.coord.y = MAP_SIZE_Y_MM - (Touch_Data.pos.yp - gui_element[GUI_EL_AREA_MAP].y) * MAP_RESOLUTION_MM;
+			slam.robot_pos.coord.x = (Touch_Data.pos.xp - gui_element[GUI_EL_AREA_MAP].x) * MAP_RESOLUTION_MM * scale;
+			slam.robot_pos.coord.y = MAP_SIZE_Y_MM - (Touch_Data.pos.yp - gui_element[GUI_EL_AREA_MAP].y) * scale * MAP_RESOLUTION_MM;
 		}
 	}
 

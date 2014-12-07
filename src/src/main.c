@@ -108,17 +108,17 @@ int main( void )
 	STM_EVAL_LEDInit(LED6); STM_EVAL_LEDOff(LED4);
 
 	// Tasks get started here...
-	xTaskCreate( vDebugTask, "DEBUG",		1024,
+	xTaskCreate( vDebugTask, "DEBUG",		2024,
 			NULL, mainGUI_TASK_PRIORITY, &hDebugTask );
-	xTaskCreate( vTimeTask, "TIME",			1024,
+	xTaskCreate( vTimeTask, "TIME",			2024,
 			NULL, mainTIME_TASK_PRIORITY, &hTimeTask );
 	xTaskCreate( vDRIVETask, "DRIVE",		1024,
 			NULL, mainDRIVE_TASK_PRIORITY, &hDRIVETask );
-	xTaskCreate( vSLAMTask, "SLAM",			1024,
+	xTaskCreate( vSLAMTask, "SLAM",			2024,
 			NULL, mainSLAM_TASK_PRIORITY, &hSLAMTask );
-	xTaskCreate( vGUITask, "GUI",			512,
+	xTaskCreate( vGUITask, "GUI",			1024,
 			NULL, mainGUI_TASK_PRIORITY, &hGUITask );
-	xTaskCreate( vLIDARTask, "LIDAR",		512,
+	xTaskCreate( vLIDARTask, "LIDAR",		1024,
 			NULL, mainLIDAR_TASK_PRIORITY, &hLIDARTask );
 
 	LCD_ResetDevice(); //Reset display here again? Otherwise not working - only a workaround! Still worked at last commit...
@@ -143,8 +143,6 @@ portTASK_FUNCTION( vTimeTask, pvParameters ) {
 
     xLastWakeTime = xTaskGetTickCount();
 
-	u_int8_t data = 0;
-
 	for(;;)
 	{
 		STM_EVAL_LEDToggle(LED3);
@@ -153,7 +151,7 @@ portTASK_FUNCTION( vTimeTask, pvParameters ) {
 
 		// Once per second, copy the number of idle ticks and then
 		// reset the rolling counter. Read out battery.
-		if ( ++i == 20 )
+		if (++i == 20)
 		{
 			comm_readBattData(&battery); //Reads battery data from base
 

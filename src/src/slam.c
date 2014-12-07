@@ -84,7 +84,7 @@ portTASK_FUNCTION( vSLAMTask, pvParameters ) {
 				slam_map_update(&slam, slam_updateVar, 200);
 
 				//montecarlo regulation
-				if(systemTick - monteCarlo_time < 180) //If the time nessesary in this iteration is less than 180ms, increase the montecarlo tries, otherwise decrease it (simple integral regulator)
+				if(systemTick - monteCarlo_time < 160) //If the time nessesary in this iteration is less than 160ms, increase the montecarlo tries, otherwise decrease it (simple integral regulator)
 					monteCarlo_tries += 20;
 				else
 					monteCarlo_tries -= 60;
@@ -144,24 +144,26 @@ void slam_processLaserscan(slam_t *slam, XV11_t *xv11, float speed_ms)
 /// \param slam
 ///		slam container structure
 
-void slam_LCD_DispMap(int16_t x0, int16_t y0, slam_t *slam)
+void slam_LCD_DispMap(int16_t x0, int16_t y0, float scale, slam_t *slam)
 {
 	u8 mapval = 0;
+	int16_t height = ((MAP_SIZE_Y_MM / MAP_RESOLUTION_MM) / scale);
+	int16_t width = ((MAP_SIZE_X_MM / MAP_RESOLUTION_MM) / scale);
 
 	LCD_SetArea(x0,
 				y0,
-				x0 + (MAP_SIZE_X_MM / MAP_RESOLUTION_MM) - 1,
-				y0 + (MAP_SIZE_Y_MM / MAP_RESOLUTION_MM) - 1);
+				x0 + width - 1,
+				y0 + height - 1);
 
 	LCD_WriteCommand(CMD_WR_MEMSTART);
 
 	Clr_Cs;
 
-	for (int16_t y = (MAP_SIZE_Y_MM / MAP_RESOLUTION_MM) - 1; y >= 0; y--)
+	for (int16_t y = height - 1; y >= 0; y--) //Each pixel in the scaled map (on the display)
 	{
-		for (int16_t x = 0; x < (MAP_SIZE_X_MM / MAP_RESOLUTION_MM); x++)
+		for (int16_t x = 0; x < width; x++)
 		{
-			mapval = slam->map.px[x][y][slam->robot_pos.coord.z];
+			mapval = slam->map.px[(int)(x * scale)][(int)(y * scale)][slam->robot_pos.coord.z];
 			LCD_WriteData(0xffff - RGB565CONVERT(mapval, mapval, mapval));
 		}
 	}

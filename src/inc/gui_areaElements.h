@@ -28,6 +28,9 @@ enum GUI_ELEMENT_MAP_STATES {
 //Stacksize of the Statusbar (amount of Status messages in the statusbar history)
 #define STAT_STACK_SIZE 25
 
+#define MAP_DRAW_WIDTH 200.0 //Displayed size of the map (later important for scaling)
+#define MAP_DRAW_HEIGHT 200.0
+
 //Stack struct of the statusbar history
 typedef struct {
 	char *message[STAT_STACK_SIZE];

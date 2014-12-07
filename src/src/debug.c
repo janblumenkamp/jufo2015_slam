@@ -52,8 +52,10 @@
 #include "comm_api.h"
 #include "comm.h"
 #include "xv11.h"
+#include "navigation_api.h"
 
 QueueHandle_t xQueueTXUSART2;
+QueueHandle_t xQueueRXUSART2;
 
 // ============================================================================
 portTASK_FUNCTION( vDebugTask, pvParameters ) {
@@ -66,32 +68,44 @@ portTASK_FUNCTION( vDebugTask, pvParameters ) {
 
 	xLastWakeTime = xTaskGetTickCount();
 
-	xQueueTXUSART2 = xQueueCreate( 1000, sizeof(char));
+	xQueueTXUSART2 = xQueueCreate( 1500, sizeof(char));
 	if( xQueueTXUSART2 == 0 )
 		foutf(&error, "xQueueTXUSART2 COULD NOT BE CREATED!\n");
+	xQueueRXUSART2 = xQueueCreate( 200, sizeof(char));
+	if( xQueueRXUSART2 == 0 )
+		foutf(&error, "xQueueRXUSART2 COULD NOT BE CREATED!\n");
 
 	foutf(&debugOS, (const char *)"xTask DEBUG started.\n");
 
 	for(;;)
 	{
-		pcui_sendMap(&slam);
-		if(!slamUI.active)
+		if(slamUI.active)
+		{
+			pcui_sendWaypoints(nav_wpStart);
+			pcui_sendMap(&slam);
+			pcui_processReceived();
+		}
+		else
+		{
 			vTaskDelayUntil( &xLastWakeTime, ( 500 / portTICK_RATE_MS ) );
+		}
 	}
 }
 
 void USART2_IRQHandler(void) //PCUI Receive...
 {
 	static BaseType_t usart2tx_ISRnewDat = pdFALSE;
+	static BaseType_t usart2rx_ISRnewDat = pdFALSE;
 
-	/*// check if the USART1 receive interrupt flag was set
+	// check if the USART2 receive interrupt flag was set
 	if( USART_GetITStatus(USART2, USART_IT_RXNE) )
 	{
 		STM_EVAL_LEDToggle(LED5);
-		char data = USART2->DR;
-		data *= 2;
-		//Process...
-	}*/
+		u_int8_t data = USART2->DR;
+		if(xQueueRXUSART2 != 0)
+			xQueueSendToBackFromISR(xQueueRXUSART2, &data, &usart2rx_ISRnewDat);
+	}
+
 	if((USART_GetFlagStatus(USART2, USART_FLAG_TC) == SET) && (USART_GetITStatus (USART2, USART_IT_TXE) == SET)) //Ready to send next byte and tx interrupt active?
 	{
 		u_int8_t data;
@@ -211,6 +225,54 @@ void pcui_sendMap(slam_t *slam)
 	}
 }
 
+void pcui_sendWaypoints(nav_waypoint_t *start)
+{
+	if(nav_wpAmount > 0)
+	{
+		/// One waypoint contains:
+		/// x (2 bytes)
+		/// y (2 bytes)
+		/// z (1 byte)
+		/// id (2 bytes)
+		/// id_next (2 bytes)
+		/// id last (2 bytes)
+		/// -> 11 bytes per waypoint
+
+		char wpdata[11 * nav_wpAmount];
+
+		nav_waypoint_t *wp = start;
+
+		for(u8 i = 0; i < nav_wpAmount; i++)
+		{
+			int16_t wp_next_id = -1;
+			int16_t wp_prev_id = -1;
+			if(wp->next != NULL)
+				wp_next_id = wp->next->id;
+			if(wp->previous != NULL)
+				wp_next_id = wp->previous->id;
+
+			wpdata[(i * 11) + 0] = wp->x & 0xff;
+			wpdata[(i * 11) + 1] = (wp->x & 0xff00) >> 8;
+			wpdata[(i * 11) + 2] = wp->y & 0xff;
+			wpdata[(i * 11) + 3] = (wp->y & 0xff00) >> 8;
+			wpdata[(i * 11) + 4] = wp->z;
+			wpdata[(i * 11) + 5] = wp->id & 0xff;
+			wpdata[(i * 11) + 6] = (wp->id & 0xff00) >> 8;
+			wpdata[(i * 11) + 7] = wp_next_id & 0xff;
+			wpdata[(i * 11) + 8] = (wp_next_id & 0xff00) >> 8;
+			wpdata[(i * 11) + 9] = wp_prev_id & 0xff;
+			wpdata[(i * 11) + 10] = (wp_prev_id & 0xff00) >> 8;
+		}
+
+		pcui_sendMsg((char *)"LWP", 11 * nav_wpAmount, wpdata); //Send line
+	}
+}
+
+void pcui_processReceived(void)
+{
+	u_int8_t data;
+	xQueueReceive(xQueueRXUSART2, &data, 0); //Blocks until new data arrive
+}
 
 // Simply print to the debug console a string based on the type of reset.
 // ============================================================================

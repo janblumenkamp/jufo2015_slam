@@ -181,8 +181,7 @@ portTASK_FUNCTION( vLIDARTask, pvParameters ) {
 
 	for(;;)
 	{
-		if(xQueueLidar != 0)
-			xQueueReceive(xQueueLidar, &data, portMAX_DELAY); //Blocks until new data arrive
+		xQueueReceive(xQueueLidar, &data, portMAX_DELAY); //Blocks until new data arrive
 
 		if(xv11.state == XV11_OFF)
 			sm = OFF;

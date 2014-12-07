@@ -11,12 +11,18 @@
 #include "main.h"
 #include "slamdefs.h"
 #include "queue.h"
+#include "navigation_api.h"
 
 extern QueueHandle_t xQueueTXUSART2;
+extern QueueHandle_t xQueueRXUSART2;
 
 extern void pcui_sendMsg(char *id, u_int32_t length, char *msg);
 
 extern void pcui_sendMap(slam_t *slam);
+
+extern void pcui_sendWaypoints(nav_waypoint_t *start);
+
+extern void pcui_processReceived(void);
 
 extern void vDebugPrintResetType(void);
 
