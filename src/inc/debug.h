@@ -22,6 +22,8 @@ extern void pcui_sendMap(slam_t *slam);
 
 extern void pcui_sendWaypoints(nav_waypoint_t *start);
 
+extern void pcui_sendMapdata(slam_t *slam);
+
 extern void pcui_processReceived(void);
 
 extern void vDebugPrintResetType(void);

@@ -438,6 +438,7 @@ void gui_el_event_sw_strslamui(ELEMENT_EVENT *event)
 		if(gui_element[GUI_EL_SW_STRSLAMUI].state == SW_OFF)
 		{
 			out_onOff(&slamUI, 1);
+
 			gui_element[GUI_EL_SW_STRSLAMUI].state = SW_ON;
 		}
 		else
@@ -706,12 +707,9 @@ portTASK_FUNCTION( vGUITask, pvParameters )
 			//BTN Set waypoint
 
 			gui_element[GUI_EL_AREA_MAP].state = GUI_EL_INTOUCHABLE;
-			if(mapping)			gui_element[GUI_EL_SW_STARTMAPPING].state = SW_ON;
-			else				gui_element[GUI_EL_SW_STARTMAPPING].state = SW_OFF;
-			if(show_scan)		gui_element[GUI_EL_SW_SHOWSCAN].state = SW_ON;
-			else				gui_element[GUI_EL_SW_SHOWSCAN].state = SW_OFF;
-			if(processedView)	gui_element[GUI_EL_SW_PROCESSEDVIEW].state = SW_ON;
-			else				gui_element[GUI_EL_SW_PROCESSEDVIEW].state = SW_OFF;
+			gui_element[GUI_EL_SW_STARTMAPPING].state =		mapping			? SW_ON : SW_OFF;
+			gui_element[GUI_EL_SW_SHOWSCAN].state =			show_scan		? SW_ON : SW_OFF;
+			gui_element[GUI_EL_SW_PROCESSEDVIEW].state =	processedView	? SW_ON : SW_OFF;
 
 			gui_element[GUI_EL_AREA_MAP].state = MAP_ACTIVE;
 
@@ -749,7 +747,7 @@ portTASK_FUNCTION( vGUITask, pvParameters )
 			break; //View idle (waiting for touch events)
 		case MENU_SETTINGS_INIT: //Settings active
 
-			switch (xv11_state(XV11_GETSTATE)) {
+			switch (xv11_state(XV11_GETSTATE)) { //Lidar state?
 			case XV11_OFF:		gui_element[GUI_EL_SW_LIDAR].state = SW_OFF;	break;
 			case XV11_STARTING:	gui_element[GUI_EL_SW_LIDAR].state = SW_BUSY;	break;
 			case XV11_ON:		gui_element[GUI_EL_SW_LIDAR].state = SW_ON;		break;
@@ -757,23 +755,19 @@ portTASK_FUNCTION( vGUITask, pvParameters )
 			}
 			gui_drawSW(&gui_element[GUI_EL_SW_LIDAR]);
 
-			if(debug.active)	gui_element[GUI_EL_SW_STRDEBUG].state = SW_ON; //Stream on/off switches
-			else				gui_element[GUI_EL_SW_STRDEBUG].state = SW_OFF;
+			gui_element[GUI_EL_SW_STRDEBUG].state =		debug.active	? SW_ON : SW_OFF; //Streams on/off?
 			gui_drawSW(&gui_element[GUI_EL_SW_STRDEBUG]);
-			if(debugOS.active)	gui_element[GUI_EL_SW_STRDEBUGOS].state = SW_ON;
-			else				gui_element[GUI_EL_SW_STRDEBUGOS].state = SW_OFF;
+			gui_element[GUI_EL_SW_STRDEBUGOS].state =	debugOS.active	? SW_ON : SW_OFF;
 			gui_drawSW(&gui_element[GUI_EL_SW_STRDEBUGOS]);
-			if(error.active)	gui_element[GUI_EL_SW_STRERR].state = SW_ON;
-			else				gui_element[GUI_EL_SW_STRERR].state = SW_OFF;
+			gui_element[GUI_EL_SW_STRERR].state =		error.active	? SW_ON : SW_OFF;
 			gui_drawSW(&gui_element[GUI_EL_SW_STRERR]);
-			if(slamUI.active)	gui_element[GUI_EL_SW_STRSLAMUI].state = SW_ON;
-			else				gui_element[GUI_EL_SW_STRSLAMUI].state = SW_OFF;
+			gui_element[GUI_EL_SW_STRSLAMUI].state =	slamUI.active	? SW_ON : SW_OFF;
 			gui_drawSW(&gui_element[GUI_EL_SW_STRSLAMUI]);
 
-			gui_element[GUI_EL_BTN_CALTOUCH].state = BTN_NOT_ACTIVE;
+			gui_element[GUI_EL_BTN_CALTOUCH].state = BTN_NOT_ACTIVE; //Calibrate Touchscreen?
 			gui_drawBTN(&gui_element[GUI_EL_BTN_CALTOUCH]);
 
-			gui_element[GUI_EL_BTN_RESET].state = BTN_NOT_ACTIVE;
+			gui_element[GUI_EL_BTN_RESET].state = BTN_NOT_ACTIVE; //Reset system!
 			gui_drawBTN(&gui_element[GUI_EL_BTN_RESET]);
 
 			menu = MENU_SETTINGS_IDLE;

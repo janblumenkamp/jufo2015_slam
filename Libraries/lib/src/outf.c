@@ -45,7 +45,6 @@ int8_t usart2queue_put(char c)
 		usart2queue_put_NULLErrSent = 0;
 		if(xQueueSendToBack(xQueueTXUSART2, &c, 0)) //character is in queue now
 		{
-			usart2queue_put_spaceErrSent = 1;
 			if(USART_GetITStatus (USART2 ,USART_IT_TXE) != SET) //If transmit interrupt is not active, activate it to send data from queue
 				USART_ITConfig(USART2, USART_IT_TXE, ENABLE);
 		}
@@ -65,6 +64,12 @@ int8_t usart2queue_put(char c)
 	{
 		usart2_put(c);
 	}
+	/*
+	if(xQueueSendToBack(xQueueTXUSART2, &c, 0)) //character is in queue now
+	{
+		if(USART_GetITStatus (USART2 ,USART_IT_TXE) != SET) //If transmit interrupt is not active, activate it to send data from queue
+			USART_ITConfig(USART2, USART_IT_TXE, ENABLE);
+	}*/
 	return c;
 }
 
