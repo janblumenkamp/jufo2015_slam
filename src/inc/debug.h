@@ -20,7 +20,7 @@ extern void pcui_sendMsg(char *id, u_int32_t length, char *msg);
 
 extern void pcui_sendMap(slam_t *slam);
 
-extern void pcui_sendWaypoints(nav_waypoint_t *start);
+extern void pcui_sendWaypoints(void);
 
 extern void pcui_sendMapdata(slam_t *slam);
 

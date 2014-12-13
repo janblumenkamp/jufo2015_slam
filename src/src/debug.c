@@ -59,7 +59,7 @@ QueueHandle_t xQueueTXUSART2;
 QueueHandle_t xQueueRXUSART2;
 
 static void vTimerSendData(TimerHandle_t xTimer);
-u8 sendOnce = 0;
+u8 timerSendData_sendWPonce = 0; //Send the waypoint list once every time the slam stream is set to active
 
 // ============================================================================
 portTASK_FUNCTION( vDebugTask, pvParameters ) {
@@ -111,22 +111,33 @@ portTASK_FUNCTION( vDebugTask, pvParameters ) {
 		}
 		else
 		{
-			sendOnce = 0;
+			timerSendData_sendWPonce = 0;
 			vTaskDelayUntil( &xLastWakeTime, ( 500 / portTICK_RATE_MS ) );
 		}
 	}
 }
 
+//////////////////////////////////////////////////////
+/// \brief vTimerSendData
+///			Timer callback function
+/// \param xTimer
+///
 static void vTimerSendData(TimerHandle_t xTimer)
 {
-	if(slamUI.active && !sendOnce)
+	if(slamUI.active)
 	{
-		pcui_sendWaypoints(nav_wpStart); //Send waypoints
 		pcui_sendMapdata(&slam);
-		sendOnce = 1;
+		if(!timerSendData_sendWPonce)
+		{
+			pcui_sendWaypoints(); //Send waypoints
+			timerSendData_sendWPonce = 1;
+		}
 	}
 }
 
+/////////////////////////////////////////////////////
+/// \brief USART2_IRQHandler
+///			USART2 interrupt handler
 void USART2_IRQHandler(void) //PCUI Receive...
 {
 	static BaseType_t xHigherPriorityTaskWoken = pdFALSE;
@@ -199,8 +210,7 @@ void pcui_sendMsg(char *id, u_int32_t length, char *msg)
 
 //////////////////////////////////////////////////////////////////////////////
 /// \brief pcui_sendMap
-///			Sends the map to the computer. Also sends the map frame data and
-///			the robot position!
+///			Sends the map to the computer
 /// \param slam
 ///			Pointer to slam container
 ///
@@ -253,7 +263,11 @@ void pcui_sendMap(slam_t *slam)
 	}*/
 }
 
-void pcui_sendWaypoints(nav_waypoint_t *start)
+////////////////////////////////////////////////////////
+/// \brief pcui_sendWaypoints
+///			Sends waypoint list to SlamUI
+///
+void pcui_sendWaypoints(void)
 {
 	/// [Waypoint amount (2 bytes)]<Waypoint amount>*[Waypoint]
 	/// One waypoint contains:
@@ -272,7 +286,7 @@ void pcui_sendWaypoints(nav_waypoint_t *start)
 	wpdata[0] = nav_wpAmount & 0xff; //Store amount of waypoints
 	wpdata[1] = (nav_wpAmount & 0xff00) >> 8;
 
-	for(wp = start, i = 0; wp != NULL; wp = wp->next, i++) //Transmit in the order they are connected!!!
+	for(wp = nav_wpStart, i = 0; wp != NULL; wp = wp->next, i++) //Transmit in the order they are connected!!!
 	{
 		int16_t wp_prev_id = -1;
 		if(wp->previous != NULL)
@@ -291,6 +305,13 @@ void pcui_sendWaypoints(nav_waypoint_t *start)
 
 	pcui_sendMsg((char *)"LWP", (9 * nav_wpAmount) + 2, wpdata); //Send message
 }
+
+//////////////////////////////////////////////////////////////////
+/// \brief pcui_sendMapdata
+///		Sends general map information (map resolution, size, robot
+///		position)
+/// \param slam
+///		slam container
 
 void pcui_sendMapdata(slam_t *slam)
 {
@@ -314,69 +335,36 @@ void pcui_sendMapdata(slam_t *slam)
 	pcui_sendMsg((char *)"MPD", 13, mpd); //Send mapdata
 }
 
-
-u8 sm_RXgetStart = 0;
+///////////////////////////////////////////////////////////////////////////////////
+/// pcui_processReceived: helperfunctions and variables.
+/// Responsible for message parsing of the USART2 (Bluetooth) RX buffer.
+/// Contains main statemachine and process-functions for the received packages.
+///////////////////////////////////////////////////////////////////////////////////
+// Helperfunction; parses the start-message string and returns 1, if string was found in rx buffer
 u8 rx_getStart(char c)
 {
+	static u8 sm_RXgetStart = 0;
 	u8 retVar = 0;
 
 	switch(sm_RXgetStart)
 	{
-	case 0:
-		//sm_RXgetStart = (c == 'P') ? sm_RXgetStart+1 : 0;
-		if(c == 'P')
-			sm_RXgetStart ++;
-		else
+	case 0:	sm_RXgetStart = (c == 'P') ? sm_RXgetStart+1 : 0;	break;
+	case 1:	sm_RXgetStart = (c == 'C') ? sm_RXgetStart+1 : 0;	break;
+	case 2:	sm_RXgetStart = (c == 'U') ? sm_RXgetStart+1 : 0;	break;
+	case 3:	sm_RXgetStart = (c == 'I') ? sm_RXgetStart+1 : 0;	break;
+	case 4:	sm_RXgetStart = (c == '_') ? sm_RXgetStart+1 : 0;	break;
+	case 5:	sm_RXgetStart = (c == 'M') ? sm_RXgetStart+1 : 0;	break;
+	case 6:	sm_RXgetStart = (c == 'S') ? sm_RXgetStart+1 : 0;	break;
+	case 7:	if(c == 'G')	retVar = 1;
 			sm_RXgetStart = 0;
-		break;
-	case 1:
-		if(c == 'C')
-			sm_RXgetStart ++;
-		else
-			sm_RXgetStart = 0;
-		break;
-	case 2:
-		if(c == 'U')
-			sm_RXgetStart ++;
-		else
-			sm_RXgetStart = 0;
-		break;
-	case 3:
-		if(c == 'I')
-			sm_RXgetStart ++;
-		else
-			sm_RXgetStart = 0;
-		break;
-	case 4:
-		if(c == '_')
-			sm_RXgetStart ++;
-		else
-			sm_RXgetStart = 0;
-		break;
-	case 5:
-		if(c == 'M')
-			sm_RXgetStart ++;
-		else
-			sm_RXgetStart = 0;
-		break;
-	case 6:
-		if(c == 'S')
-			sm_RXgetStart ++;
-		else
-			sm_RXgetStart = 0;
-		break;
-	case 7:
-		if(c == 'G')
-			retVar = 1;
-
-		sm_RXgetStart = 0;
-		break;
+			break;
 	default: sm_RXgetStart = 0; break;
 	}
 
 	return retVar;
 }
 
+// Helperfunction; compares the received message ID with the possibilities
 u8 compareID(char *msg, const char * msgcomp)
 {
 	if((msg[0] == msgcomp[0]) &&
@@ -387,14 +375,14 @@ u8 compareID(char *msg, const char * msgcomp)
 		return 0;
 }
 
-u8 sm_prcRX = 0;
-int16_t msg_len = 0;
-int32_t msg_chk = 0;
-int32_t msg_chk_computed = 0;
-char msg_id[3];
-int16_t msgBufCount = 0;
-char msgBuf[512];
+int16_t msg_len = 0; //Received message length
+int32_t msg_chk = 0; //Received checksum
+int32_t msg_chk_computed = 0; //Computed checksum (sum of all message (msg) bytes)
+char msg_id[3]; //Received ID of the message
+int16_t msgBufCount = 0; //Set to 0 if we start receiving message and increments to msg_len
+char msgBuf[512]; //Received message (highest possible length: 512 Bytes)
 
+//Processes received Waypoint List message
 void processLWP()
 {
 	/// One waypoint contains:
@@ -427,8 +415,10 @@ void processLWP()
 	}
 }
 
+//Processes rx queue, stores messages and calculates/checks checksum and, in case the checksum matches, calls correspoding (ID) process function
 void pcui_processReceived(void)
 {
+	static u8 sm_prcRX = 0;
 	u_int8_t data;
 	if(xQueueReceive(xQueueRXUSART2, &data, 0))
 	{
