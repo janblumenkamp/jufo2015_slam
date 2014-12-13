@@ -105,7 +105,7 @@ portTASK_FUNCTION( vDebugTask, pvParameters ) {
 	{
 		if(slamUI.active)
 		{
-			//pcui_sendMap(&slam);
+			pcui_sendMap(&slam);
 
 			pcui_processReceived();
 		}
@@ -217,39 +217,52 @@ void pcui_sendMsg(char *id, u_int32_t length, char *msg)
 
 u8 sendMap_z = 0;
 int16_t sendMap_y = 0;
+char mapBuf[(MAP_SIZE_X_MM / MAP_RESOLUTION_MM) + 3]; //Buffer/Map line has to be able to store this much. Its calculated, if a runninglengthcoding would reduce the nessesary memory.
 
 void pcui_sendMap(slam_t *slam)
 {
-	char buf[(MAP_SIZE_X_MM / MAP_RESOLUTION_MM) + 3];
-
 	/// Send a message for each line of the map. If we send the whole map, we would calculate the
 	/// checksum and be ready one second after that - in the meantime, the map would have changed
 	/// and the checksum does not matches anymore. Therefore, we save the current line (y), transmit it
 	/// with the line information and the matching checksum and receive it as message on the pc. If the
 	/// checksum does not matches there, we simply ignore the line and go on.
 
-	for(u8 z = 0; z < MAP_SIZE_Z_LAYERS; z++)
+	mapBuf[0] = sendMap_z; //Current stage to send
+	mapBuf[1] = sendMap_y & 0xff; //Current line to send
+	mapBuf[2] = (sendMap_y & 0xff00) >> 8;
+
+	slam_map_pixel_t lastPx = slam->map.px[0][sendMap_y][sendMap_z]; //First pixel of map
+	u8 pixelCnt = 0;
+	int16_t bufIndex = 3; //Offset (bytes 0 - 2 store stage and line)
+
+	for(int16_t i = 0; i < (MAP_SIZE_X_MM / MAP_RESOLUTION_MM); i++) //Map information itself beginning in byte 3
 	{
-		for(int16_t y = 0; y < (MAP_SIZE_Y_MM / MAP_RESOLUTION_MM); y ++)
+		if((lastPx != slam->map.px[i][sendMap_y][sendMap_z]) || (i == (MAP_SIZE_X_MM / MAP_RESOLUTION_MM) - 1) || (pixelCnt == 255))
 		{
-			buf[0] = z; //Current stage to send
-			buf[1] = y & 0xff; //Current line to send
-			buf[2] = (y & 0xff00) >> 8;
+			if(bufIndex < (MAP_SIZE_X_MM / MAP_RESOLUTION_MM) + 3)
+			{
+				mapBuf[bufIndex] = pixelCnt;
+				mapBuf[bufIndex + 1] = lastPx;
+			}
+			else break; //Abort loop for the run-length encoding and store data 1:1
 
-			for(int i = 0; i < (MAP_SIZE_X_MM / MAP_RESOLUTION_MM); i++) //Map information itself beginning in byte 3
-				buf[i + 3] = slam->map.px[i][y][z];
-
-			pcui_sendMsg((char *)"MAP", (MAP_SIZE_X_MM / MAP_RESOLUTION_MM) + 3, buf); //Send line
+			pixelCnt = 0;
+			bufIndex += 2;
 		}
+		pixelCnt ++;
+		lastPx = slam->map.px[i][sendMap_y][sendMap_z];
 	}
-	/*buf[0] = sendMap_z; //Current stage to send
-	buf[1] = sendMap_y & 0xff; //Current line to send
-	buf[2] = (sendMap_y & 0xff00) >> 8;
 
-	for(int i = 0; i < (MAP_SIZE_X_MM / MAP_RESOLUTION_MM); i++) //Map information itself beginning in byte 3
-		buf[i + 3] = slam->map.px[i][sendMap_y][sendMap_z];
-
-	pcui_sendMsg((char *)"MAP", (MAP_SIZE_X_MM / MAP_RESOLUTION_MM) + 3, buf); //Send line
+	if(bufIndex >= (MAP_SIZE_X_MM / MAP_RESOLUTION_MM) + 3) //run-length encoding would need more memory than a simple transfer of every byte in the line
+	{
+		for(int16_t i = 3; i < (MAP_SIZE_X_MM / MAP_RESOLUTION_MM) + 3; i++)
+			mapBuf[i] = slam->map.px[i-3][sendMap_y][sendMap_z]; //Store the data of the line 1:1 in the buffer
+		pcui_sendMsg((char *)"MAP", (MAP_SIZE_X_MM / MAP_RESOLUTION_MM) + 3, mapBuf); //Send Map line 1:1 ("MAP")
+	}
+	else
+	{
+		pcui_sendMsg((char *)"MAR", bufIndex, mapBuf); //Send map run-length encoded
+	}
 
 	sendMap_y ++;
 	if(sendMap_y == (MAP_SIZE_Y_MM / MAP_RESOLUTION_MM))
@@ -260,7 +273,7 @@ void pcui_sendMap(slam_t *slam)
 		{
 			sendMap_z = 0;
 		}
-	}*/
+	}
 }
 
 ////////////////////////////////////////////////////////
