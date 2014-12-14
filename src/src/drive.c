@@ -16,25 +16,24 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-///////SLAM Task
-portTASK_FUNCTION( vDRIVETask, pvParameters ) {
-	portTickType xLastWakeTime;
+SemaphoreHandle_t driveSync; //Snychronize DRIVE Task with SLAM Task!
+
+portTASK_FUNCTION( vDRIVETask, pvParameters )
+{
+//	portTickType xLastWakeTime = xTaskGetTickCount();
+
+	driveSync = xSemaphoreCreateBinary();
 
 	foutf(&debugOS, "xTask DRIVE started.\n");
-
-	xLastWakeTime = xTaskGetTickCount();
 
 	for(;;)
 	{
 		//foutf(&debugOS, "Watermark drive: %i\n", uxTaskGetStackHighWaterMark( NULL ));
 
-		if(mapping)
+		if(xSemaphoreTake(driveSync, portMAX_DELAY) == pdTRUE) //After SLAM Task calculated new position, process the navigation tasks and calculate speed etc.
 		{
 			navigate(&slam, &motor);
-
 			comm_setMotor(&motor);
 		}
-
-		vTaskDelayUntil( &xLastWakeTime, ( 200 / portTICK_RATE_MS ) );
 	}
 }

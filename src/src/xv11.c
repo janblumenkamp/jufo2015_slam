@@ -159,10 +159,9 @@ QueueHandle_t xQueueLidar;
 
 //static u_int8_t sm = INIT_SEARCHSTART;
 
-portTASK_FUNCTION( vLIDARTask, pvParameters ) {
-
-	portTickType xLastWakeTime;
-	xLastWakeTime = xTaskGetTickCount();
+portTASK_FUNCTION( vLIDARTask, pvParameters )
+{
+	//portTickType xLastWakeTime = xTaskGetTickCount();
 
 	foutf(&debugOS, "xTask LIDAR started.\n");
 

@@ -253,12 +253,14 @@ void gui_drawAREAmap(GUI_ELEMENT *element)
 			ptrWp = ptrWp->next;
 		}
 
-		if(nextWp != NULL) //Goal defined
+		if(nextWP_ID != -1) //Goal defined
 		{
-			LCD_Line(element->x + (slam.robot_pos.coord.x / MAP_RESOLUTION_MM),
-					 element->y + ((MAP_SIZE_Y_MM - slam.robot_pos.coord.y) / MAP_RESOLUTION_MM),
-					 element->x + (nextWp->x / MAP_RESOLUTION_MM),
-					 element->y + ((MAP_SIZE_Y_MM - nextWp->y) / MAP_RESOLUTION_MM),
+			nav_waypoint_t *nextWp = nav_getWaypoint(nextWP_ID);
+
+			LCD_Line(element->x + (int)((slam.robot_pos.coord.x / MAP_RESOLUTION_MM) / scale),
+					 element->y + (int)(((MAP_SIZE_Y_MM - slam.robot_pos.coord.y) / MAP_RESOLUTION_MM) / scale),
+					 element->x + (int)((nextWp->x / MAP_RESOLUTION_MM) / scale),
+					 element->y + (int)(((MAP_SIZE_Y_MM - nextWp->y) / MAP_RESOLUTION_MM) / scale),
 					 LCD_COLOR_BRIGHTYELLOW);
 		}
 

@@ -233,7 +233,7 @@ void gui_el_event_btn_clearMap(ELEMENT_EVENT *event)
 					slam.map.px[x][y][z] = 127;
 
 		nav_initWaypointStack(); //clear waypoint list
-		nextWp = NULL;
+		nextWP_ID = -1;
 	}
 }
 

@@ -11,7 +11,7 @@
 #include "stdlib.h"
 #include "gui.h"
 
-nav_waypoint_t *nextWp; //Next waypoint in list (goal)
+int16_t nextWP_ID = -1; //nav_waypoint_t *nextWp; //Next waypoint in list (goal)
 float nextWp_dist = 0; //Dist to next waypoint
 
 void navigate(slam_t *slam, mot_t *mot)
@@ -19,12 +19,14 @@ void navigate(slam_t *slam, mot_t *mot)
 	float wp_dx, wp_dy;
 	float psi = 0;
 
-	if(nav_wpStart != NULL && nextWp == NULL) //List created. Now we can start to navigate!
+	if(nav_wpStart != NULL && nextWP_ID == -1) //List created. Now we can start to navigate!
 	{
-		nextWp = nav_wpStart;
+		nextWP_ID = nav_wpStart->id;
 	}
-	else if(nextWp != NULL)
+	else if(nextWP_ID != -1)
 	{
+		nav_waypoint_t *nextWp = nav_getWaypoint(nextWP_ID);
+
 		wp_dx = slam->robot_pos.coord.x - nextWp->x; //Convert root of cartesian coordinate system to the robot position (robot is now the root and wp_dx/dy are the coordinates of the waypoint)
 		wp_dy = slam->robot_pos.coord.y - nextWp->y;
 
@@ -32,7 +34,7 @@ void navigate(slam_t *slam, mot_t *mot)
 
 		if(nextWp_dist < 200) //20cm close to the waypoint
 		{
-			nextWp = nextWp->next; //Switch to next waypoint
+			nextWP_ID = nextWp->next->id; //Switch to next waypoint
 		}
 		else //Calculate motor data
 		{
@@ -42,7 +44,8 @@ void navigate(slam_t *slam, mot_t *mot)
 			psi *= -(180/M_PI); //Convert to degree
 			psi = slam->robot_pos.psi - psi;
 			if(psi > 180)
-				psi = 360 - psi;
+				//psi = 360 - psi;
+				psi -= 360;
 
 			int16_t speedvar_l = 20 - (psi/3);
 			int16_t speedvar_r = 20 + (psi/3);

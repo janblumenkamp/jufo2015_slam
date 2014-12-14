@@ -406,6 +406,8 @@ void processLWP()
 	/// id prev (2 bytes)
 	/// -> 9 bytes per waypoint
 
+	taskENTER_CRITICAL(); //IF WE START DELETING THE WAYPOINT LIS AND NOW THE SCHEDULER SWITCHES INTO THE NAVIGATION TASK, WE COULD GET A PROBLEM!
+
 	nav_initWaypointStack(); //Reset Waypoint list
 
 	int16_t amount = msgBuf[0] + (msgBuf[1] << 8); //Don’t write value into nav_wpAmount!!!! It’s handled automatically in nav_attachWaypoint
@@ -426,6 +428,8 @@ void processLWP()
 		//nav_wpStart automatically initalized in attachWaypoint (if it is the first one)
 		nav_attachWaypoint(&w);
 	}
+
+	taskEXIT_CRITICAL();
 }
 
 //Processes rx queue, stores messages and calculates/checks checksum and, in case the checksum matches, calls correspoding (ID) process function

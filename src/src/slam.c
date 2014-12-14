@@ -18,6 +18,7 @@
 #include "gui.h"
 #include "slam.h"
 #include "slamdefs.h"
+#include "drive.h"
 
 #include "SSD1963.h"
 #include "SSD1963_api.h"
@@ -58,7 +59,7 @@ portTASK_FUNCTION( vSLAMTask, pvParameters ) {
 	{
 		foutf(&debugOS, "Watermark slam: %i\n", uxTaskGetStackHighWaterMark( NULL ));
 
-		if(xSemaphoreTake(lidarSync, 0xffff) == pdTRUE) //Synchronize Lidar and SLAM integration (only process SLAM Data (Lidar, etc.) if Lidar has turned 360°)
+		if(xSemaphoreTake(lidarSync, portMAX_DELAY) == pdTRUE) //Synchronize Lidar and SLAM integration (only process SLAM Data (Lidar, etc.) if Lidar has turned 360°)
 		{
 			slam_processLaserscan(&slam, (XV11_t *) &xv11, (motor.speed_l_ms + motor.speed_r_ms) / 2);
 
@@ -91,6 +92,7 @@ portTASK_FUNCTION( vSLAMTask, pvParameters ) {
 
 				foutf(&debug, "MonteCarlo time needed: %i, new amounts: %i\n", systemTick - monteCarlo_time, monteCarlo_tries);
 
+				xSemaphoreGive(driveSync);
 				//foutf(debug, "time: %i, quality: %i, pos x: %i, pos y: %i, psi: %i\n", (int)(systemTick - timer_slam), best, (int)slam.robot_pos.coord.x, (int)slam.robot_pos.coord.y, (int)slam.robot_pos.psi);
 			}
 			else

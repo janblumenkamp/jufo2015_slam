@@ -8,7 +8,7 @@
 #include "slam.h"
 #include "navigation_api.h"
 
-extern nav_waypoint_t *nextWp; //Next waypoint in list (goal)
+extern int16_t nextWP_ID; //Next waypoint in list (goal)
 
 extern void navigate(slam_t *slam, mot_t *mot);
 
