@@ -176,7 +176,8 @@ void gui_drawAREAmap(GUI_ELEMENT *element)
 		LCD_Rectangle(element->x, element->y, element->x + element->length, element->y + element->heigth, LCD_COLOR_BLACK, 0);
 
 		if(processedView)
-			slam_LCD_DispMapProcessed(element->x + 1, element->y + 1, &slam); //Not nessesary to clear area (it is overwritten)
+			//slam_LCD_DispMapProcessed(element->x + 1, element->y + 1, &slam); //Not nessesary to clear area (it is overwritten)
+			slam_LCD_DispMapNav(element->x + 1, element->y + 1, 0.5f, &slam);
 		else
 			slam_LCD_DispMap(element->x + 1, element->y + 1, scale, &slam); //Not nessesary to clear area (it is overwritten)
 

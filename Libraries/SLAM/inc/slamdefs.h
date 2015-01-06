@@ -10,6 +10,7 @@
 #define SLAMDEFS_H
 
 #include "main.h"
+#include "stm32f4xx.h"
 
 //Sensordata
 #define WHEELDIST	260 //Distance between two wheels
@@ -29,6 +30,8 @@
 #define MAP_SIZE_Z_LAYERS		1		//Amount of layers of the map
 #define MAP_RESOLUTION_MM		10
 #define MAP_NAVRESOLUTION_FAC	3 //Resolution of navigation cells in MAP_RESOLUTION_MM * MAP_NAVRESOLUTION_FAC mm (on each navresolution cell there come MAP_NAVRESOLUTION_FAC^2 MAP_SIZE_X_MM / MAP_RESOLUTION_MM cells)
+#define MAP_NAV_SIZE_X_PX		MAP_SIZE_X_MM / (MAP_RESOLUTION_MM * MAP_NAVRESOLUTION_FAC)
+#define MAP_NAV_SIZE_Y_PX		MAP_SIZE_Y_MM / (MAP_RESOLUTION_MM * MAP_NAVRESOLUTION_FAC)
 
 #define MAP_VAR_MAX			255 //Overflow of map pixel
 #define MAP_VAR_MIN			0 //Underflow of map pixel
@@ -64,7 +67,7 @@ typedef u_int8_t slam_map_navpixel_t;
 //Raw Map
 typedef struct {
 	slam_map_pixel_t px[MAP_SIZE_X_MM / MAP_RESOLUTION_MM][MAP_SIZE_Y_MM / MAP_RESOLUTION_MM][MAP_SIZE_Z_LAYERS];
-	slam_map_navpixel_t nav[MAP_SIZE_X_MM / (MAP_RESOLUTION_MM * MAP_NAVRESOLUTION_FAC)][MAP_SIZE_Y_MM / (MAP_RESOLUTION_MM * MAP_NAVRESOLUTION_FAC)][MAP_SIZE_Z_LAYERS];
+	slam_map_navpixel_t nav[MAP_NAV_SIZE_X_PX][MAP_NAV_SIZE_X_PX][MAP_SIZE_Z_LAYERS];
 } slam_map_t;
 
 //Container of all SLAM information:
@@ -86,7 +89,11 @@ extern void slam_laserRayToMap(slam_t *slam,
 							   int x1, int y1, int x2, int y2, int xp, int yp,
 							   int value, int alpha);
 
-extern void slam_map_update(slam_t *slam, int quality, int hole_width);
+extern void slam_laserRayToNav(slam_t *slam,
+						int x1, int y1, int x2, int y2, int xp, int yp,
+						int value, int alpha);
+
+extern void slam_map_update(slam_t *slam, u8 map, int quality, int hole_width);
 
 extern int slam_distanceScanToMap(slam_t *slam, slam_position_t *position);
 

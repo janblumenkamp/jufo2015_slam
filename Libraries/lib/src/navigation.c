@@ -25,7 +25,15 @@ void navigate(slam_t *slam, mot_t *mot)
 	}
 	else if(nextWP_ID != -1)
 	{
-		nav_waypoint_t *nextWp = nav_getWaypoint(nextWP_ID);
+		nav_waypoint_t *nextWp;
+		if(nextWP_ID == -1) //Next waypoint not existing -> End of List! next Waypoint is start waypoint.
+		{
+			nextWp = nav_wpStart;
+		}
+		else
+		{
+			nextWp = nav_getWaypoint(nextWP_ID);
+		}
 
 		wp_dx = slam->robot_pos.coord.x - nextWp->x; //Convert root of cartesian coordinate system to the robot position (robot is now the root and wp_dx/dy are the coordinates of the waypoint)
 		wp_dy = slam->robot_pos.coord.y - nextWp->y;

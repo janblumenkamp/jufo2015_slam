@@ -290,6 +290,5 @@ portTASK_FUNCTION( vLIDARTask, pvParameters )
 		default:
 			break;
 		}
-		//vTaskDelayUntil( &xLastWakeTime, ( 50 / portTICK_RATE_MS ) );
     }
 }

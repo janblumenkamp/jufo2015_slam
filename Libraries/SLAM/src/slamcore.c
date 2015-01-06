@@ -36,7 +36,10 @@ void slam_init(slam_t *slam,
 	for(u8 z = 0; z < MAP_SIZE_Z_LAYERS; z ++)
 		for(u16 y = 0; y < (MAP_SIZE_Y_MM/MAP_RESOLUTION_MM); y++)
 			for(u16 x = 0; x < (MAP_SIZE_X_MM / MAP_RESOLUTION_MM); x ++)
+			{
+				slam->map.nav[x / MAP_NAVRESOLUTION_FAC][y / MAP_NAVRESOLUTION_FAC][z] = 0;
 				slam->map.px[x][y][z] = 127;
+			}
 
 	slam->robot_pos.coord.x = rob_x_start;
 	slam->robot_pos.coord.y = rob_y_start;
@@ -221,6 +224,112 @@ void slam_laserRayToMap(slam_t *slam,
 	}
 }
 
+
+void slam_laserRayToNav(slam_t *slam,
+						int x1, int y1, int x2, int y2, int xp, int yp,
+						int value, int alpha)
+{
+	int x2c, y2c, dx, dy, dxc, dyc, error, errorv, derrorv, x;
+	int incv, sincv, incerrorv, incptrx, incptry, pixval, horiz, diago;
+	slam_map_navpixel_t *ptr;
+
+	if ((x1 < 0) || (x1 >= MAP_NAV_SIZE_X_PX) || (y1 < 0) || (y1 >= MAP_NAV_SIZE_Y_PX))
+		return; // Robot is out of map
+
+	x2c = x2; y2c = y2;
+	// Clipping
+	if (x2c < 0) {
+		if (x2c == x1) return;
+		y2c += (y2c - y1) * (-x2c) / (x2c - x1);
+		x2c = 0;
+	}
+	if (x2c >= MAP_NAV_SIZE_X_PX) {
+		if (x1 == x2c) return;
+		y2c += (y2c - y1) * (MAP_NAV_SIZE_X_PX - 1 - x2c) / (x2c - x1);
+		x2c = MAP_NAV_SIZE_X_PX - 1;
+	}
+	if (y2c < 0) {
+		if (y1 == y2c) return;
+		x2c += (x1 - x2c) * (-y2c) / (y1 - y2c);
+		y2c = 0;
+	}
+	if (y2c >= MAP_NAV_SIZE_Y_PX) {
+		if (y1 == y2c) return;
+		x2c += (x1 - x2c) * (MAP_NAV_SIZE_Y_PX - 1 - y2c) / (y1 - y2c);
+		y2c = MAP_NAV_SIZE_Y_PX - 1;
+	}
+
+	dx = abs(x2 - x1); dy = abs(y2 - y1);
+	dxc = abs(x2c - x1); dyc = abs(y2c - y1);
+	incptrx = (x2 > x1) ? 1 : -1;
+	incptry = (y2 > y1) ? MAP_NAV_SIZE_Y_PX : -MAP_NAV_SIZE_Y_PX;
+	sincv = (value > NO_OBSTACLE) ? 1 : -1;
+	if (dx > dy)
+	{
+		derrorv = abs(xp - x2);
+	}
+	else
+	{
+		//SWAP(dx, dy); SWAP(dxc, dyc); SWAP(incptrx, incptry);
+		dx ^= dy;
+		dy ^= dx;
+		dx ^= dy;
+
+		dxc ^= dyc;
+		dyc ^= dxc;
+		dxc ^= dyc;
+
+		incptrx ^= incptry;
+		incptry ^= incptrx;
+		incptrx ^= incptry;
+
+		derrorv = abs(yp - y2);
+	}
+	error = 2 * dyc - dxc;
+	horiz = 2 * dyc;
+	diago = 2 * (dyc - dxc);
+	errorv = derrorv / 2;
+	incv = (value - NO_OBSTACLE) / derrorv;
+	incerrorv = value - NO_OBSTACLE - derrorv * incv;
+
+	ptr = &slam->map.nav[0][0][slam->robot_pos.coord.z] + y1 * MAP_NAV_SIZE_Y_PX + x1;
+	pixval = NO_OBSTACLE;
+	for (x = 0; x <= dxc; x++, ptr += incptrx)
+	{
+		if (x > dx - 2 * derrorv)
+		{
+			if (x <= dx - derrorv)
+			{
+				pixval = IS_OBSTACLE;//pixval += incv;
+				errorv += incerrorv;
+				if (errorv > derrorv)
+				{
+					pixval += sincv;
+					errorv -= derrorv;
+				}
+			}
+			else
+			{
+				pixval = IS_OBSTACLE;//pixval -= incv;
+				errorv -= incerrorv;
+				if (errorv < 0)
+				{
+					//pixval -= sincv;
+					errorv += derrorv;
+				}
+			}
+		}
+		// Integration into the map
+		*ptr = ((256 - alpha) * (*ptr) + alpha * pixval) >> 8;
+		if (error > 0)
+		{
+			ptr += incptry;
+			error += diago;
+		}
+		else error += horiz;
+	}
+}
+
 ///////////////////////////////////////////////////////////////
 /// \brief Maps one laser ray of the lidar scan to the map. The value is integrated
 ///		via an alpha-beta-filter. For the better understanding, please read the
@@ -275,6 +384,8 @@ void slam_line(slam_t *slam, int xs, int ys, int xe, int ye, int xh, int yh, uin
 ///		Updates one whole scan; integrates one whole scan of the lidar into the map.
 /// \param slam
 ///		SLAM container structure
+/// \param map
+///		Update raw map or the navigation area
 /// \param quality
 ///		quality of the integration from 0 to 255. 0 doesn’t integrates the
 ///		ray into the map, 255 integrates it fully into the map, 127 would
@@ -298,7 +409,7 @@ void slam_line(slam_t *slam, int xs, int ys, int xe, int ye, int xh, int yh, uin
 ///									  |-------|
 ///									  hole_width!!!
 
-void slam_map_update(slam_t *slam, int quality, int hole_width)
+void slam_map_update(slam_t *slam, u8 map, int quality, int hole_width)
 {
 	float c, s;
 	float x2p, y2p;
@@ -333,7 +444,8 @@ void slam_map_update(slam_t *slam, int quality, int hole_width)
 			x2 = (int)floorf(slam->robot_pos.coord.y / MAP_RESOLUTION_MM + x2p + 0.5);//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 			y2 = (int)floorf(slam->robot_pos.coord.x / MAP_RESOLUTION_MM + y2p + 0.5);
 
-			slam_laserRayToMap(slam, x1, y1, x2, y2, xp, yp, IS_OBSTACLE, quality);
+			if(map)	slam_laserRayToMap(slam, x1, y1, x2, y2, xp, yp, IS_OBSTACLE, quality);
+			else	slam_laserRayToNav(slam, x1/3, y1/3, x2/3, y2/3, xp/3, yp/3, IS_OBSTACLE, quality);
 		}
 	}
 	//for(int i = 0; i < MAP_SIZE_X_MM / (MAP_RESOLUTION_MM * 3); i++)
@@ -342,13 +454,14 @@ void slam_map_update(slam_t *slam, int quality, int hole_width)
 
 ////////////////////////////////////////////////////////////////////////////////////
 /// \brief slam_distanceScanToMap
-///		comperares the ambiguity  of the laserscan to the given position in the map
+///		Matches the Laserscan on the given position in the map
 /// \param slam
 ///		slam container structure containing the newest lidar scan
 /// \param position
 ///		position in the map that shall be compared by the lidar scan
 /// \return
-///		number that is proportional to the ambiguity (around 230000 fully matching)
+///		number that is proportional to the ambiguity (around 230000 fully matching),
+///		-1 if no match found
 
 int slam_distanceScanToMap(slam_t *slam, slam_position_t *position)
 {
@@ -356,29 +469,29 @@ int slam_distanceScanToMap(slam_t *slam, slam_position_t *position)
 	int i, x, y, nb_points = 0;
 	float sum = 0;
 
-	c = cosf((position->psi) * M_PI / 180);
+	c = cosf((position->psi) * M_PI / 180); //Calculate it here, not nessesary to calculate in every iteration in the loop
 	s = sinf((position->psi) * M_PI / 180);
 	// Translate and rotate scan to robot position
 	// and compute the distance
-	for (i = 0; i < LASERSCAN_POINTS; i += 10)
+	for (i = 0; i < LASERSCAN_POINTS; i += 10) //LASERSCAN_POINTS: 360. For every 10th measurement.
 	{
-		if(slam->sensordata.lidar[i] != LASERSCAN_NODATA)
+		if(slam->sensordata.lidar[i] != LASERSCAN_NODATA) //If the quality of the measurement is high enough and not out of range
 		{
-			lidar_x = (slam->sensordata.lidar[i] * sinf(i * (M_PI / 180)));
+			lidar_x = (slam->sensordata.lidar[i] * sinf(i * (M_PI / 180))); //Convert from polar to cartesian
 			lidar_y = (slam->sensordata.lidar[i] * cosf(i * (M_PI / 180)));
 
-			x = (int)floorf((position->coord.y + c * lidar_x - s * lidar_y) / MAP_RESOLUTION_MM + 0.5);//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-			y = (int)floorf((position->coord.x + s * lidar_x + c * lidar_y) / MAP_RESOLUTION_MM + 0.5);
+			x = (int)floorf((position->coord.y + c * lidar_x - s * lidar_y) / MAP_RESOLUTION_MM + 0.5); //Calculate the point in which the Measurement ends as seen from the robot.
+			y = (int)floorf((position->coord.x + s * lidar_x + c * lidar_y) / MAP_RESOLUTION_MM + 0.5); //Workaround: y- and y- position has to be changed due to strange mirroring error...
 
-			if((x >= 0) && (x < (MAP_SIZE_X_MM/MAP_RESOLUTION_MM)) && (y >= 0) && (y < (MAP_SIZE_Y_MM/MAP_RESOLUTION_MM)))
+			if((x >= 0) && (x < (MAP_SIZE_X_MM/MAP_RESOLUTION_MM)) && (y >= 0) && (y < (MAP_SIZE_Y_MM/MAP_RESOLUTION_MM))) //Point lies inside the map size!
 			{
-				sum += *(&slam->map.px[0][0][slam->robot_pos.coord.z] + y * (MAP_SIZE_Y_MM / MAP_RESOLUTION_MM) + x);
+				sum += *(&slam->map.px[0][0][slam->robot_pos.coord.z] + y * (MAP_SIZE_Y_MM / MAP_RESOLUTION_MM) + x); //Access array by pointer-arithemtics, add value to sum
 				nb_points++;
 			}
 		}
 	}
-	if (nb_points) sum = sum * 1024 / nb_points;
-	else sum = 2000000000;
+	if (nb_points) sum = sum * 1024 / nb_points; //Calculate all-in-all value for returning
+	else sum = -1;
 	return (int)sum;
 }
 
@@ -399,30 +512,30 @@ void slam_processMovement(slam_t *slam)
 	float dl_enc, dr_enc; //Driven distance (since last function call) in mm.
 	float dx = 0, dy = 0, dpsi = 0, dist_driven = 0;
 
-	dl_enc = (*slam->sensordata.odo_l - slam->sensordata.odo_l_old) * 2 * WHEELRADIUS * M_PI / TICKSPERREV;
+	dl_enc = (*slam->sensordata.odo_l - slam->sensordata.odo_l_old) * 2 * WHEELRADIUS * M_PI / TICKSPERREV; //Calculate difference driven distance in mm
 	dr_enc = (*slam->sensordata.odo_r - slam->sensordata.odo_r_old) * 2 * WHEELRADIUS * M_PI / TICKSPERREV;
-	slam->sensordata.odo_l_old = *slam->sensordata.odo_l;
+	slam->sensordata.odo_l_old = *slam->sensordata.odo_l; //Nessesary for next interation (difference)
 	slam->sensordata.odo_r_old = *slam->sensordata.odo_r;
 
-	if(fabsf(dl_enc - dr_enc) > 0)
+	if(fabsf(dl_enc - dr_enc) > 0) //If robot has driven a curve
 	{
-		float r = -WHEELDIST * (dl_enc + dr_enc) / (2 * (dr_enc - dl_enc));
-		dpsi = -(dr_enc - dl_enc) / WHEELDIST;
+		float r = -WHEELDIST * (dl_enc + dr_enc) / (2 * (dr_enc - dl_enc)); //Helpervariable
+		dpsi = -(dr_enc - dl_enc) / WHEELDIST; //Calculate change of rotation (orientation) of robot
 
-		dx = r * sinf(dpsi + (slam->robot_pos.psi * 180 / M_PI)) - r * sinf((slam->robot_pos.psi * 180 / M_PI));
-		dy = -r * cosf(dpsi + (slam->robot_pos.psi * 180 / M_PI)) + r * cosf((slam->robot_pos.psi * 180 / M_PI));
+		dx = r * sinf(dpsi + (slam->robot_pos.psi * 180 / M_PI)) - r * sinf((slam->robot_pos.psi * 180 / M_PI)); //Calculate change of cartesian x in relation to last robot position
+		dy = -r * cosf(dpsi + (slam->robot_pos.psi * 180 / M_PI)) + r * cosf((slam->robot_pos.psi * 180 / M_PI)); //...y
 
 		dpsi *= 180 / M_PI; //Convert radian to degree
 	}
 	else // basically going straight
 	{
-		dx = dl_enc * cosf(slam->robot_pos.psi * M_PI / 180);
+		dx = dl_enc * cosf(slam->robot_pos.psi * M_PI / 180); //No change of rotation
 		dy = dr_enc * sinf(slam->robot_pos.psi * M_PI / 180);
 	}
 
-	dist_driven = sqrtf(dx * dx + dy * dy);
+	dist_driven = sqrtf(dx * dx + dy * dy); //Driven distance
 
-	slam->robot_pos.coord.x += dist_driven * cosf((180 - slam->robot_pos.psi + dpsi) * M_PI / 180);
+	slam->robot_pos.coord.x += dist_driven * cosf((180 - slam->robot_pos.psi + dpsi) * M_PI / 180); //The calculated values were given as change of position in relation to the last robot position. Now we have to calculate the new absolute position.
 	slam->robot_pos.coord.y += dist_driven * sinf((180 - slam->robot_pos.psi + dpsi) * M_PI / 180);
 	slam->robot_pos.psi += dpsi;
 }

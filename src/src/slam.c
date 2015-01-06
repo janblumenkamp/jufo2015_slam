@@ -82,7 +82,8 @@ portTASK_FUNCTION( vSLAMTask, pvParameters ) {
 				else
 					slam_updateVar = 1;
 
-				slam_map_update(&slam, slam_updateVar, 200);
+				slam_map_update(&slam, 1, slam_updateVar, 350);//160); //Update map pixels
+				//slam_map_update(&slam, 0, slam_updateVar, 500); //Update navigation space
 
 				//montecarlo regulation
 				if(systemTick - monteCarlo_time < 160) //If the time nessesary in this iteration is less than 160ms, increase the montecarlo tries, otherwise decrease it (simple integral regulator)
@@ -90,14 +91,15 @@ portTASK_FUNCTION( vSLAMTask, pvParameters ) {
 				else
 					monteCarlo_tries -= 60;
 
-				foutf(&debug, "MonteCarlo time needed: %i, new amounts: %i\n", systemTick - monteCarlo_time, monteCarlo_tries);
+				//foutf(&debug, "MonteCarlo time needed: %i, new amounts: %i\n", systemTick - monteCarlo_time, monteCarlo_tries);
 
+				//foutf(&debug, "time: %i, quality: %i, pos x: %i, pos y: %i, psi: %i, new amounts: %i\n", (int)(systemTick - monteCarlo_time), best, (int)slam.robot_pos.coord.x, (int)slam.robot_pos.coord.y, (int)slam.robot_pos.psi, (int)monteCarlo_tries);
 				xSemaphoreGive(driveSync);
-				//foutf(debug, "time: %i, quality: %i, pos x: %i, pos y: %i, psi: %i\n", (int)(systemTick - timer_slam), best, (int)slam.robot_pos.coord.x, (int)slam.robot_pos.coord.y, (int)slam.robot_pos.psi);
 			}
 			else
 			{
-				slam_map_update(&slam, 100, 160);
+				slam_map_update(&slam, 1, 100, 350);//160);
+				slam_map_update(&slam, 0, 100, 500);
 				motor.speed_l_to = 0;
 				motor.speed_r_to = 0;
 			}
@@ -166,6 +168,43 @@ void slam_LCD_DispMap(int16_t x0, int16_t y0, float scale, slam_t *slam)
 		for (int16_t x = 0; x < width; x++)
 		{
 			mapval = slam->map.px[(int)(x * scale)][(int)(y * scale)][slam->robot_pos.coord.z];
+			LCD_WriteData(0xffff - RGB565CONVERT(mapval, mapval, mapval));
+		}
+	}
+
+	Set_Cs;
+}
+
+/////////////////////////////////////////////////////////////////
+/// \brief slam_LCD_DispMapNav
+///		Displays the slam navigation space
+/// \param x0
+///		X start coordinate
+/// \param y0
+///		Y start coordinate
+/// \param slam
+///		slam container structure
+
+void slam_LCD_DispMapNav(int16_t x0, int16_t y0, float scale, slam_t *slam)
+{
+	u8 mapval = 0;
+	int16_t height = (MAP_NAV_SIZE_Y_PX / scale);
+	int16_t width = (MAP_NAV_SIZE_X_PX / scale);
+
+	LCD_SetArea(x0,
+				y0,
+				x0 + width - 1,
+				y0 + height - 1);
+
+	LCD_WriteCommand(CMD_WR_MEMSTART);
+
+	Clr_Cs;
+
+	for (int16_t y = height - 1; y >= 0; y--) //Each pixel in the scaled map (on the display)
+	{
+		for (int16_t x = 0; x < width; x++)
+		{
+			mapval = slam->map.nav[(int)(x * scale)][(int)(y * scale)][slam->robot_pos.coord.z];
 			LCD_WriteData(0xffff - RGB565CONVERT(mapval, mapval, mapval));
 		}
 	}

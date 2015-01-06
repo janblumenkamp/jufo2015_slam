@@ -101,31 +101,38 @@ ts_position_t ts_monte_carlo_search(ts_randomizer_t *randomizer, ts_scan_t *scan
     currentdist = ts_distance_scan_to_map(scan, map, &currentpos);
     bestdist = lastbestdist = currentdist;
 
-    do {
-	currentpos = lastbestpos;
-	currentpos.x = ts_random_normal(randomizer, currentpos.x, sigma_xy);
-	currentpos.y = ts_random_normal(randomizer, currentpos.y, sigma_xy);
-	currentpos.theta = ts_random_normal(randomizer, currentpos.theta, sigma_theta);
+	do
+	{
+		currentpos = lastbestpos;
+		currentpos.x = ts_random_normal(randomizer, currentpos.x, sigma_xy);
+		currentpos.y = ts_random_normal(randomizer, currentpos.y, sigma_xy);
+		currentpos.theta = ts_random_normal(randomizer, currentpos.theta, sigma_theta);
 
-	currentdist = ts_distance_scan_to_map(scan, map, &currentpos);
-	
-	if (currentdist < bestdist) {
-	    bestdist = currentdist;
-	    bestpos = currentpos;
-			if (debug) printf("Monte carlo ! %i %i %i %d (count = %d)\n", (int)(bestpos.x), (int)(bestpos.y), (int)(bestpos.theta), bestdist, counter);
-	} else {
-	    counter++;
-	}
-        if (counter > stop / 3) {
-            if (bestdist < lastbestdist) {
-                lastbestpos = bestpos;
-                lastbestdist = bestdist;
-                counter = 0;
-                sigma_xy *= 0.5;
-                sigma_theta *= 0.5;
-            }
-        }
+		currentdist = ts_distance_scan_to_map(scan, map, &currentpos);
+
+		if (currentdist < bestdist)
+		{
+			bestdist = currentdist;
+			bestpos = currentpos;
+		}
+		else
+		{
+			counter++;
+		}
+
+		if (counter > stop / 3)
+		{
+			if (bestdist < lastbestdist)
+			{
+				lastbestpos = bestpos;
+				lastbestdist = bestdist;
+				counter = 0;
+				sigma_xy *= 0.5;
+				sigma_theta *= 0.5;
+			}
+		}
     } while (counter < stop);
+
     if (bd)
         *bd = bestdist;
     return bestpos;

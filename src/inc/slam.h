@@ -29,6 +29,8 @@ extern SemaphoreHandle_t lidarSync; //Snychronize SLAM Task with Lidar!
 
 extern void slam_LCD_DispMap(int16_t x0, int16_t y0, float scale, slam_t *slam);
 
+extern void slam_LCD_DispMapNav(int16_t x0, int16_t y0, float scale, slam_t *slam);
+
 extern void slam_LCD_DispMapProcessed(int16_t x0, int16_t y0, slam_t *slam);
 
 extern void slam_processLaserscan(slam_t *slam, XV11_t *xv11, float speed_ms);
