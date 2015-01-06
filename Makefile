@@ -24,7 +24,6 @@ INCLUDE+=-I$(CURDIR)/Libraries/lib/inc
 INCLUDE+=-I$(CURDIR)/Libraries/SSD1963/inc
 INCLUDE+=-I$(CURDIR)/Libraries/ub_lib/inc
 INCLUDE+=-I$(CURDIR)/Libraries/ub_lib/ub_font
-#INCLUDE+=-I$(CURDIR)/Libraries/CoreSLAM
 INCLUDE+=-I$(CURDIR)/Libraries/SLAM/inc
 
 BUILD_DIR = $(CURDIR)/build
@@ -44,7 +43,6 @@ vpath %.c $(CURDIR)/Libraries/STM32F4xx_StdPeriph_Driver/src \
 	  $(CURDIR)/Libraries/ub_lib/ub_font \
 	  $(CURDIR)/Libraries/ub_lib/ub_font/font \
 	  $(CURDIR)/Libraries/SLAM/src
-#	  $(CURDIR)/Libraries/CoreSLAM
 	  
 
 vpath %.s $(STARTUP)
@@ -142,13 +140,6 @@ SRC+=ub_font_pArial_21.c
 #SRC+=ub_font_pTimes_12.c
 #SRC+=ub_font_pTimes_15.c
 #SRC+=ub_font_pTimes_18.c
-
-#CoreSLAM
-#SRC+=CoreSLAM.c
-#SRC+=CoreSLAM_ext.c
-#SRC+=CoreSLAM_loop_closing.c
-#SRC+=CoreSLAM_random.c
-#SRC+=CoreSLAM_state.c
 
 #SLAM
 SRC+=slamcore.c
