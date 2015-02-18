@@ -159,17 +159,6 @@ void USART2_IRQHandler(void) //PCUI Receive...
 			USART_ITConfig(USART2, USART_IT_TXE, DISABLE); //otherwise disable tx interrupt
 	}
 
-/*	if (USART_GetITStatus(USART1, USART_IT_TXE) != RESET)
-			{
-		  if( xQueueReceiveFromISR( TxQueue, &ch, &xHigherPriorityTaskWoken ) )
-			{
-			  USART_SendData(USART1, ch);
-			}else{
-			   //disable Transmit Data Register empty interrupt
-			   USART_ITConfig(USART1, USART_IT_TXE, DISABLE);
-				 }
-			}*/
-
 	portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
 }
 
@@ -361,17 +350,17 @@ u8 rx_getStart(char c)
 
 	switch(sm_RXgetStart)
 	{
-	case 0:	sm_RXgetStart = (c == 'P') ? sm_RXgetStart+1 : 0;	break;
-	case 1:	sm_RXgetStart = (c == 'C') ? sm_RXgetStart+1 : 0;	break;
-	case 2:	sm_RXgetStart = (c == 'U') ? sm_RXgetStart+1 : 0;	break;
-	case 3:	sm_RXgetStart = (c == 'I') ? sm_RXgetStart+1 : 0;	break;
-	case 4:	sm_RXgetStart = (c == '_') ? sm_RXgetStart+1 : 0;	break;
-	case 5:	sm_RXgetStart = (c == 'M') ? sm_RXgetStart+1 : 0;	break;
-	case 6:	sm_RXgetStart = (c == 'S') ? sm_RXgetStart+1 : 0;	break;
-	case 7:	if(c == 'G')	retVar = 1;
-			sm_RXgetStart = 0;
-			break;
-	default: sm_RXgetStart = 0; break;
+		case 0:	sm_RXgetStart = (c == 'P') ? sm_RXgetStart+1 : 0;	break;
+		case 1:	sm_RXgetStart = (c == 'C') ? sm_RXgetStart+1 : 0;	break;
+		case 2:	sm_RXgetStart = (c == 'U') ? sm_RXgetStart+1 : 0;	break;
+		case 3:	sm_RXgetStart = (c == 'I') ? sm_RXgetStart+1 : 0;	break;
+		case 4:	sm_RXgetStart = (c == '_') ? sm_RXgetStart+1 : 0;	break;
+		case 5:	sm_RXgetStart = (c == 'M') ? sm_RXgetStart+1 : 0;	break;
+		case 6:	sm_RXgetStart = (c == 'S') ? sm_RXgetStart+1 : 0;	break;
+		case 7:	if(c == 'G')	retVar = 1;
+				sm_RXgetStart = 0;
+				break;
+		default: sm_RXgetStart = 0; break;
 	}
 
 	return retVar;

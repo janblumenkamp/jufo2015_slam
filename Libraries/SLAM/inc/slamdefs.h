@@ -77,7 +77,7 @@ typedef struct {
 	slam_map_t map;
 } slam_t;
 
-int slam_monteCarloSearch(slam_t *slam, int sigma_xy, int sigma_psi, int stop);
+extern int16_t slam_monteCarloSearch(slam_t *slam, int16_t sigma_xy, int16_t sigma_psi, uint16_t stop);
 
 //Initialization of all relevant SLAM information
 extern void slam_init(slam_t *slam,
@@ -86,16 +86,16 @@ extern void slam_init(slam_t *slam,
 
 //Bases on ts_map_laser_ray
 extern void slam_laserRayToMap(slam_t *slam,
-							   int x1, int y1, int x2, int y2, int xp, int yp,
-							   int value, int alpha);
+							   int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t xp, int16_t yp,
+							   int16_t value, int16_t alpha);
 
 extern void slam_laserRayToNav(slam_t *slam,
-						int x1, int y1, int x2, int y2, int xp, int yp,
-						int value, int alpha);
+						int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t xp, int16_t yp,
+						int16_t value, int16_t alpha);
 
-extern void slam_map_update(slam_t *slam, u8 map, int quality, int hole_width);
+extern void slam_map_update(slam_t *slam, u8 map, int16_t quality, int16_t hole_width);
 
-extern int slam_distanceScanToMap(slam_t *slam, slam_position_t *position);
+extern int32_t slam_distanceScanToMap(slam_t *slam, slam_position_t *position);
 
 extern void slam_processMovement(slam_t *slam);
 

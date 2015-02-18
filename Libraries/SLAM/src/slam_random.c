@@ -16,23 +16,24 @@
 ///		Amount of tries
 /// \return
 ///		Value proportional to the degree of matching
-int slam_monteCarloSearch(slam_t *slam, int sigma_xy, int sigma_psi, int stop)
+int16_t slam_monteCarloSearch(slam_t *slam, int16_t sigma_xy, int16_t sigma_psi, uint16_t stop)
 {
 	slam_position_t currentpos; //Stores position with the current spreading
 	slam_position_t bestpos; //Stores position with the best matching position
 	slam_position_t lastbestpos; //Stores position with the current spreading if a better matching position was found. Used after 1/3 of stop!
-	int currentdist; //Stores current value of degree of matching of the laserdata
-	int dist_best, lastdist_best; //Stores the best and last best value of degree of matching of the laserdata
+	int32_t currentdist; //Stores current value of degree of matching of the laserdata
+	int32_t dist_best, lastdist_best; //Stores the best and last best value of degree of matching of the laserdata
 
 	currentpos = bestpos = lastbestpos = slam->robot_pos; //Initialize with robot position
 	dist_best = lastdist_best = currentdist = slam_distanceScanToMap(slam, &currentpos); //initialize with current degree of matching
 
-	for(int i = 0; i < stop; i++)
+	for(uint16_t i = 0; i < stop; i++)
 	{
 		currentpos = lastbestpos;
 		currentpos.coord.x += (float)((rand() % (sigma_xy * 2)) - sigma_xy); //Generate a random number between -sigma_xy and sigma_xy
 		currentpos.coord.y += (float)((rand() % (sigma_xy * 2)) - sigma_xy);
-		currentpos.psi += (float)((rand() % (sigma_psi * 2)) - sigma_psi);
+		currentpos.psi += (float)((rand() % (10 * 2)) - 10);
+		//currentpos.psi += (float)((rand() % (sigma_psi * 2)) - sigma_psi);
 
 		currentdist = slam_distanceScanToMap(slam, &currentpos); //evaluate this position
 

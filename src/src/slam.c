@@ -93,7 +93,7 @@ portTASK_FUNCTION( vSLAMTask, pvParameters ) {
 
 				//foutf(&debug, "MonteCarlo time needed: %i, new amounts: %i\n", systemTick - monteCarlo_time, monteCarlo_tries);
 
-				//foutf(&debug, "time: %i, quality: %i, pos x: %i, pos y: %i, psi: %i, new amounts: %i\n", (int)(systemTick - monteCarlo_time), best, (int)slam.robot_pos.coord.x, (int)slam.robot_pos.coord.y, (int)slam.robot_pos.psi, (int)monteCarlo_tries);
+				foutf(&debug, "time: %i, quality: %i, pos x: %i, pos y: %i, psi: %i, new amounts: %i\n", (int)(systemTick - monteCarlo_time), best, (int)slam.robot_pos.coord.x, (int)slam.robot_pos.coord.y, (int)slam.robot_pos.psi, (int)monteCarlo_tries);
 				xSemaphoreGive(driveSync);
 			}
 			else

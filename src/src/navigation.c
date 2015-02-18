@@ -11,7 +11,8 @@
 #include "stdlib.h"
 #include "gui.h"
 
-int16_t nextWP_ID = -1; //nav_waypoint_t *nextWp; //Next waypoint in list (goal)
+int16_t nextWP_ID = -1; //Next waypoint in list (goal)
+nav_waypoint_t *nextWp; //Store also a pointer to the next waypoint (not only id, this pointer i important for the robot program
 float nextWp_dist = 0; //Dist to next waypoint
 
 void navigate(slam_t *slam, mot_t *mot)
@@ -19,58 +20,94 @@ void navigate(slam_t *slam, mot_t *mot)
 	float wp_dx, wp_dy;
 	float psi = 0;
 
-	if(nav_wpStart != NULL && nextWP_ID == -1) //List created. Now we can start to navigate!
+	if(nav_wpStart != NULL)
 	{
-		nextWP_ID = nav_wpStart->id;
-	}
-	else if(nextWP_ID != -1)
-	{
-		nav_waypoint_t *nextWp;
-		if(nextWP_ID == -1) //Next waypoint not existing -> End of List! next Waypoint is start waypoint.
+		if(nextWP_ID == -1) //List created. Now we can start to navigate! This only happens once
 		{
+			nextWP_ID = nav_wpStart->id;
 			nextWp = nav_wpStart;
+		}
+		else if(nextWP_ID != -1)
+		{
+			wp_dx = slam->robot_pos.coord.x - nextWp->x; //Convert root of cartesian coordinate system to the robot position (robot is now the root and wp_dx/dy are the coordinates of the waypoint)
+			wp_dy = slam->robot_pos.coord.y - nextWp->y;
+
+			nextWp_dist = sqrtf((wp_dx * wp_dx) + (wp_dy * wp_dy)); //Calculate dist to waypoint
+
+			if(nextWp_dist < 200) //20cm close to the waypoint
+			{
+				if(nextWp->next->id != -1) //We are not at the last waypoint in the list
+				{
+					nextWP_ID = nextWp->next->id; //Switch to next waypoint
+					nextWp = nav_getWaypoint(nextWP_ID);
+				}
+				else
+				{
+					mot->speed_l_to = 0; //Stop robot
+					mot->speed_r_to = 0;
+				}
+			}
+			else //Calculate motor data
+			{
+				if(wp_dy >= 0)	psi = acosf(wp_dx / nextWp_dist);
+				else			psi = acosf(-(wp_dx / nextWp_dist)) - M_PI;
+
+				psi *= -(180/M_PI); //Convert to degree
+				psi = slam->robot_pos.psi - psi;
+				if(psi > 180)
+					//psi = 360 - psi;
+					psi -= 360;
+
+				int16_t speedvar_l = 20 - (psi/3);
+				int16_t speedvar_r = 20 + (psi/3);
+
+				if(speedvar_l < -20)
+					speedvar_l = -20;
+				else if(speedvar_l > 20)
+					speedvar_l = 20;
+				if(speedvar_r < -20)
+					speedvar_r = -20;
+				else if(speedvar_r > 20)
+					speedvar_r = 20;
+
+				mot->speed_l_to = speedvar_l;
+				mot->speed_r_to = speedvar_r;
+
+				//printf("Abweichung wp: %i, speedL: %i, speedR: %i\n", (int)psi, speedvar_l, speedvar_r);
+			}
+		}
+	}
+	else //Drive random, avoid obstacles (exploration mode)
+	{
+		uint16_t lidar_min_l = 0xffff;
+		uint16_t lidar_min_r = 0xffff;
+
+		for(int16_t i = 90; i < 180; i++)
+		{
+			if(slam->sensordata.lidar[i] > LASERSCAN_NODATA && slam->sensordata.lidar[i] < lidar_min_r)
+				lidar_min_r = slam->sensordata.lidar[i];
+		}
+
+		for(int16_t i = 180; i < 270; i++)
+		{
+			if(slam->sensordata.lidar[i] > LASERSCAN_NODATA && slam->sensordata.lidar[i] < lidar_min_l)
+				lidar_min_l = slam->sensordata.lidar[i];
+		}
+
+		if(lidar_min_l < 250)
+		{
+			mot->speed_l_to = 20;
+			mot->speed_r_to = -20;
+		}
+		else if(lidar_min_r < 250)
+		{
+			mot->speed_l_to = -20;
+			mot->speed_r_to = 20;
 		}
 		else
 		{
-			nextWp = nav_getWaypoint(nextWP_ID);
-		}
-
-		wp_dx = slam->robot_pos.coord.x - nextWp->x; //Convert root of cartesian coordinate system to the robot position (robot is now the root and wp_dx/dy are the coordinates of the waypoint)
-		wp_dy = slam->robot_pos.coord.y - nextWp->y;
-
-		nextWp_dist = sqrtf((wp_dx * wp_dx) + (wp_dy * wp_dy)); //Calculate dist to waypoint
-
-		if(nextWp_dist < 200) //20cm close to the waypoint
-		{
-			nextWP_ID = nextWp->next->id; //Switch to next waypoint
-		}
-		else //Calculate motor data
-		{
-			if(wp_dy >= 0)	psi = acosf(wp_dx / nextWp_dist);
-			else			psi = acosf(-(wp_dx / nextWp_dist)) - M_PI;
-
-			psi *= -(180/M_PI); //Convert to degree
-			psi = slam->robot_pos.psi - psi;
-			if(psi > 180)
-				//psi = 360 - psi;
-				psi -= 360;
-
-			int16_t speedvar_l = 20 - (psi/3);
-			int16_t speedvar_r = 20 + (psi/3);
-
-			if(speedvar_l < -20)
-				speedvar_l = -20;
-			else if(speedvar_l > 20)
-				speedvar_l = 20;
-			if(speedvar_r < -20)
-				speedvar_r = -20;
-			else if(speedvar_r > 20)
-				speedvar_r = 20;
-
-			mot->speed_l_to = speedvar_l;
-			mot->speed_r_to = speedvar_r;
-
-			//printf("Abweichung wp: %i, speedL: %i, speedR: %i\n", (int)psi, speedvar_l, speedvar_r);
+			mot->speed_l_to = 20;
+			mot->speed_r_to = 20;
 		}
 	}
 }
