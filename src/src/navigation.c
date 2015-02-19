@@ -36,7 +36,7 @@ void navigate(slam_t *slam, mot_t *mot)
 
 			if(nextWp_dist < 200) //20cm close to the waypoint
 			{
-				if(nextWp->next->id != -1) //We are not at the last waypoint in the list
+				if(nextWp->next != NULL && nextWp->next->id != -1) //We are not at the last waypoint in the list
 				{
 					nextWP_ID = nextWp->next->id; //Switch to next waypoint
 					nextWp = nav_getWaypoint(nextWP_ID);
@@ -79,30 +79,30 @@ void navigate(slam_t *slam, mot_t *mot)
 	}
 	else //Drive random, avoid obstacles (exploration mode)
 	{
-		uint16_t lidar_min_l = 0xffff;
-		uint16_t lidar_min_r = 0xffff;
+		uint16_t lidar_min = 0xffff;
+		int16_t lidar_min_i = 0; //Index of lowest lidar entry
 
-		for(int16_t i = 90; i < 180; i++)
+		for(int16_t i = 90; i < 270; i++)
 		{
-			if(slam->sensordata.lidar[i] > LASERSCAN_NODATA && slam->sensordata.lidar[i] < lidar_min_r)
-				lidar_min_r = slam->sensordata.lidar[i];
+			if(slam->sensordata.lidar[i] > LASERSCAN_NODATA && slam->sensordata.lidar[i] < lidar_min)
+			{
+				lidar_min_i = i - 180; //Lidar index: now 0 means front, -90 right and 90 left
+				lidar_min = slam->sensordata.lidar[i];
+			}
 		}
 
-		for(int16_t i = 180; i < 270; i++)
+		if(lidar_min < 300)
 		{
-			if(slam->sensordata.lidar[i] > LASERSCAN_NODATA && slam->sensordata.lidar[i] < lidar_min_l)
-				lidar_min_l = slam->sensordata.lidar[i];
-		}
-
-		if(lidar_min_l < 250)
-		{
-			mot->speed_l_to = 20;
-			mot->speed_r_to = -20;
-		}
-		else if(lidar_min_r < 250)
-		{
-			mot->speed_l_to = -20;
-			mot->speed_r_to = 20;
+			if(lidar_min_i > 0)
+			{
+				mot->speed_l_to = 10;
+				mot->speed_r_to = -10;
+			}
+			else
+			{
+				mot->speed_l_to = -10;
+				mot->speed_r_to = 10;
+			}
 		}
 		else
 		{

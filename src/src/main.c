@@ -137,7 +137,7 @@ u8 statusbar_battWarningSent = 0; //Set to 1 if battery warning was sent to stat
 
 portTASK_FUNCTION( vTimeTask, pvParameters ) {
     portTickType xLastWakeTime;
-    uint8_t i=0;
+	uint8_t i=19;
 
 	foutf(&debugOS, "xTask TIME started.\n");
 
