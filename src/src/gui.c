@@ -53,6 +53,7 @@ void gui_el_event_btn_setWp(ELEMENT_EVENT *event);
 void gui_el_event_mbtn_view(ELEMENT_EVENT *event);
 void gui_el_event_mbtn_settings(ELEMENT_EVENT *event);
 void gui_el_event_sw_lidar(ELEMENT_EVENT *event);
+void gui_el_event_sw_strlidar(ELEMENT_EVENT *event);
 void gui_el_event_sw_strdebug(ELEMENT_EVENT *event);
 void gui_el_event_sw_strdebugos(ELEMENT_EVENT *event);
 void gui_el_event_sw_strerr(ELEMENT_EVENT *event);
@@ -84,6 +85,7 @@ void gui_el_pages_putInvisible(void)
 
 	//Settings
 	gui_element[GUI_EL_SW_LIDAR].state = GUI_EL_INVISIBLE;
+	gui_element[GUI_EL_SW_STRLIDAR].state = GUI_EL_INVISIBLE;
 	gui_element[GUI_EL_BTN_CALTOUCH].state = GUI_EL_INVISIBLE;
 	gui_element[GUI_EL_BTN_RESET].state = GUI_EL_INVISIBLE;
 	gui_element[GUI_EL_SW_STRDEBUG].state = GUI_EL_INVISIBLE;
@@ -365,6 +367,27 @@ void gui_el_event_sw_lidar(ELEMENT_EVENT *event)
 }
 
 /////////////////////////////////////////////////////////////////////////////
+/// \brief gui_el_event_sw_strlidar
+/// \param event
+
+void gui_el_event_sw_strlidar(ELEMENT_EVENT *event)
+{
+	if(event->released)
+	{
+		if(gui_element[GUI_EL_SW_STRLIDAR].state == SW_OFF)
+		{
+			strlidar.active = 1;
+			gui_element[GUI_EL_SW_STRLIDAR].state = SW_ON;
+		}
+		else
+		{
+			strlidar.active = 0;
+			gui_element[GUI_EL_SW_STRLIDAR].state = SW_OFF;
+		}
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////
 /// \brief gui_el_event_sw_strdebug
 /// \param event
 
@@ -513,6 +536,7 @@ void gui_init(void)
 		gui_element[GUI_EL_BTN_CALTOUCH].id = EL_ID_BTN;
 		gui_element[GUI_EL_BTN_RESET].id = EL_ID_BTN;
 		gui_element[GUI_EL_SW_LIDAR].id = EL_ID_SW;
+		gui_element[GUI_EL_SW_STRLIDAR].id = EL_ID_SW;
 		gui_element[GUI_EL_SW_STRDEBUG].id = EL_ID_SW;
 		gui_element[GUI_EL_SW_STRDEBUGOS].id = EL_ID_SW;
 		gui_element[GUI_EL_SW_STRSLAMUI].id = EL_ID_SW;
@@ -611,6 +635,12 @@ void gui_init(void)
 		gui_element[GUI_EL_SW_LIDAR].label = (char *)"Lidar:";
 		gui_element[GUI_EL_SW_LIDAR].action = &gui_el_event_sw_lidar;
 		gui_element[GUI_EL_SW_LIDAR].state = GUI_EL_INVISIBLE;
+
+			gui_element[GUI_EL_SW_STRLIDAR].x = gui_element[GUI_EL_SW_LIDAR].x + gui_element[GUI_EL_SW_LIDAR].length + PAGE_GRID_DIST;
+			gui_element[GUI_EL_SW_STRLIDAR].y = gui_element[GUI_EL_SW_LIDAR].y;
+			gui_element[GUI_EL_SW_STRLIDAR].label = (char *)"Stream:";
+			gui_element[GUI_EL_SW_STRLIDAR].action = &gui_el_event_sw_strlidar;
+			gui_element[GUI_EL_SW_STRLIDAR].state = GUI_EL_INVISIBLE;
 
 		gui_element[GUI_EL_SW_STRDEBUG].x = PAGE_GRID_DIST;
 		gui_element[GUI_EL_SW_STRDEBUG].y = gui_element[GUI_EL_SW_LIDAR].y + gui_element[GUI_EL_SW_LIDAR].heigth + 5;
@@ -755,7 +785,9 @@ portTASK_FUNCTION( vGUITask, pvParameters )
 			}
 			gui_drawSW(&gui_element[GUI_EL_SW_LIDAR]);
 
-			gui_element[GUI_EL_SW_STRDEBUG].state =		debug.active	? SW_ON : SW_OFF; //Streams on/off?
+			gui_element[GUI_EL_SW_STRLIDAR].state =		strlidar.active	? SW_ON : SW_OFF; //Streams on/off?
+			gui_drawSW(&gui_element[GUI_EL_SW_STRLIDAR]);
+			gui_element[GUI_EL_SW_STRDEBUG].state =		debug.active	? SW_ON : SW_OFF;
 			gui_drawSW(&gui_element[GUI_EL_SW_STRDEBUG]);
 			gui_element[GUI_EL_SW_STRDEBUGOS].state =	debugOS.active	? SW_ON : SW_OFF;
 			gui_drawSW(&gui_element[GUI_EL_SW_STRDEBUGOS]);

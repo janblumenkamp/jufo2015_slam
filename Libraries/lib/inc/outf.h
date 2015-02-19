@@ -16,6 +16,7 @@ typedef struct {
 } stream_t;
 
 extern stream_t slamUI;
+extern stream_t strlidar;
 extern stream_t debug;
 extern stream_t debugOS;
 extern stream_t error;

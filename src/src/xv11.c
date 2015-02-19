@@ -66,6 +66,8 @@ void USART1_IRQHandler(void)
 		u_int8_t data = USART1->DR; // the character from the USART1 data register is saved in data
 		if(xQueueLidar != 0)
 			xQueueSendToBackFromISR(xQueueLidar, &data, &lidarISRnewDat);
+		if(strlidar.active) //I lidar stream is active, stream lidar raw data
+			strlidar.put_c(data);
 	}
 	portEND_SWITCHING_ISR(lidarISRnewDat);
 }

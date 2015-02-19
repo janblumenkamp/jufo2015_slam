@@ -19,6 +19,7 @@
 #include "queue.h"
 
 stream_t slamUI;
+stream_t strlidar;
 stream_t debug;
 stream_t debugOS;
 stream_t error;
@@ -106,6 +107,11 @@ void out_init(void)
 	debug.bgcolor = 0;//42; //green
 	debug.textcolor = 0;//30; //black
 	debug.put_c = &usart2queue_put;
+
+	strlidar.active = 0;
+	strlidar.bgcolor = 0;
+	strlidar.textcolor = 0;
+	strlidar.put_c = &usart2queue_put;
 
 	debugOS.active = 1;
 	debugOS.bgcolor = 0;//43; //Yellow
