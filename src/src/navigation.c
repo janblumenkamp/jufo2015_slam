@@ -15,6 +15,8 @@ int16_t nextWP_ID = -1; //Next waypoint in list (goal)
 nav_waypoint_t *nextWp; //Store also a pointer to the next waypoint (not only id, this pointer i important for the robot program
 float nextWp_dist = 0; //Dist to next waypoint
 
+uint8_t nav_mode = NAV_MODE_STOP; //Stop, do nothing, wait for start
+
 void navigate(slam_t *slam, mot_t *mot)
 {
 	float wp_dx, wp_dy;

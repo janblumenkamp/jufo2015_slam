@@ -28,8 +28,14 @@
 ///					- x  (2byte)
 ///					- y  "
 ///					- z  "
-///		["STA"]: Status (1 char). Bidirectional.
-///					- start/stop
+///		["STA"]: Status (9 char). Bidirectional. Is like a watchdog, has to be sent at least every second from the master, otherwise system switches to exploration mode until it receives data again! After every request from master, slave sends an answer with same data. This can be used to recognize if slave is down
+///					- mode (Exploration, Waypoint, Manual) (1byte)
+///					- motor left speed is (1byte) (master can only read!)
+///					- motor right speed is (1byte) (")
+///					- motor left speed is in mm/s (2byte) (master can only read!)
+///					- motor right speed is in mm/s (2byte) (")
+///					- motor left speed to (1byte) (master can write and read)
+///					- motor right speed to (1byte) (")
 ///	[Data]: [Lenght] chars
 
 
@@ -54,6 +60,7 @@
 #include "comm.h"
 #include "xv11.h"
 #include "navigation_api.h"
+#include "navigation.h"
 
 QueueHandle_t xQueueTXUSART2;
 QueueHandle_t xQueueRXUSART2;
@@ -337,6 +344,37 @@ void pcui_sendMapdata(slam_t *slam)
 	pcui_sendMsg((char *)"MPD", 13, mpd); //Send mapdata
 }
 
+//////////////////////////////////////////////////////////////////
+/// \brief pcui_sendStat
+///		Sends status package
+/// \param slam
+///		slam container
+
+void pcui_sendStat(uint8_t mode, mot_t *m)
+{
+	///	- mode (Exploration, Waypoint, Manual) (1byte)
+	///					- motor left speed is (1byte) (master can only read!)
+	///					- motor right speed is (1byte) (")
+	///					- motor left speed is in mm/s (2byte) (master can only read!)
+	///					- motor right speed is in mm/s (2byte) (")
+	///					- motor left speed to (1byte) (master can write and read)
+	///					- motor right speed to (1byte) (")
+
+	char stat[9]; //Status message container array
+
+	stat[0] = mode;
+	stat[1] = m->speed_l_is;
+	stat[2] = m->speed_r_is;
+	stat[3] = (m->speed_l_ms & 0xff);
+	stat[4] = (m->speed_l_ms & 0xff00) >> 8;
+	stat[5] = (m->speed_r_ms & 0xff);
+	stat[6] = (m->speed_r_ms & 0xff00) >> 8;
+	stat[7] = m->speed_l_to;
+	stat[8] = m->speed_r_to;
+
+	pcui_sendMsg((char *)"STA", 9, stat); //Send mapdata
+}
+
 ///////////////////////////////////////////////////////////////////////////////////
 /// pcui_processReceived: helperfunctions and variables.
 /// Responsible for message parsing of the USART2 (Bluetooth) RX buffer.
@@ -421,6 +459,20 @@ void processLWP()
 	taskEXIT_CRITICAL();
 }
 
+//Processes received Status message
+void processSTA()
+{
+	///	- mode (Exploration, Waypoint, Manual) (1byte)
+	///					- motor left speed to (1byte) (master can write and read)
+	///					- motor right speed to (1byte) (")
+
+	nav_mode = msgBuf[0];
+	motor.speed_l_to = msgBuf[1];
+	motor.speed_r_to = msgBuf[2];
+
+	pcui_sendStat(nav_mode, &motor); //And send answer!!!
+}
+
 //Processes rx queue, stores messages and calculates/checks checksum and, in case the checksum matches, calls correspoding (ID) process function
 void pcui_processReceived(void)
 {
@@ -468,6 +520,8 @@ void pcui_processReceived(void)
 					{
 						if(compareID(msg_id, (const char *)"LWP"))
 							processLWP();
+						if(compareID(msg_id, (const char *)"STA"))
+							processSTA();
 					}
 
 					sm_prcRX = 0;
